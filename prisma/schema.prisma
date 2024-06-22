@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  username String   @unique
+  email    String   @unique
+  password String
+  surveys  Survey[]
+  responses Response[]
+}
+
+model Survey {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  creationDate DateTime @default(now())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  questions   Question[]
+  responses   Response[]
+}
+
+model Question {
+  id           Int       @id @default(autoincrement())
+  surveyId     Int
+  questionText String
+  questionType String
+  correctAnswer String
+  survey       Survey    @relation(fields: [surveyId], references: [id])
+  options      Option[]
+  answers      Answer[]
+}
+
+model Option {
+  id         Int      @id @default(autoincrement())
+  questionId Int
+  optionText String
+  question   Question @relation(fields: [questionId], references: [id])
+  answers    Answer[]
+}
+
+model Response {
+  id         Int      @id @default(autoincrement())
+  surveyId   Int
+  userId     Int
+  responseDate DateTime @default(now())
+  survey     Survey    @relation(fields: [surveyId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
+  answers    Answer[]
+}
+
+model Answer {
+  id         Int       @id @default(autoincrement())
+  responseId Int
+  questionId Int
+  optionId   Int?
+  answerText String?
+  response   Response  @relation(fields: [responseId], references: [id])
+  question   Question  @relation(fields: [questionId], references: [id])
+  option     Option?   @relation(fields: [optionId], references: [id])
+}
