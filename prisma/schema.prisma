@@ -12,30 +12,30 @@ model User {
   username String   @unique
   email    String   @unique
   password String
-  surveys  Survey[]
+  surveys  Survey[] @relation("UserSurveys")
   responses Response[]
 }
 
 model Survey {
-  id          Int       @id @default(autoincrement())
-  title       String
-  description String
-  creationDate DateTime @default(now())
-  userId      Int
-  user        User      @relation(fields: [userId], references: [id])
-  questions   Question[]
-  responses   Response[]
+  id           Int       @id @default(autoincrement())
+  title        String
+  description  String
+  creationDate DateTime  @default(now())
+  authorId     Int
+  author       User      @relation(fields: [authorId], references: [id], name: "UserSurveys")
+  questions    Question[]
+  responses    Response[]
 }
 
 model Question {
-  id           Int       @id @default(autoincrement())
-  surveyId     Int
-  questionText String
-  questionType String
+  id            Int       @id @default(autoincrement())
+  surveyId      Int
+  questionText  String
+  questionType  String
   correctAnswer String
-  survey       Survey    @relation(fields: [surveyId], references: [id])
-  options      Option[]
-  answers      Answer[]
+  survey        Survey    @relation(fields: [surveyId], references: [id])
+  options       Option[]
+  answers       Answer[]
 }
 
 model Option {
@@ -47,13 +47,13 @@ model Option {
 }
 
 model Response {
-  id         Int      @id @default(autoincrement())
-  surveyId   Int
-  userId     Int
-  responseDate DateTime @default(now())
-  survey     Survey    @relation(fields: [surveyId], references: [id])
-  user       User      @relation(fields: [userId], references: [id])
-  answers    Answer[]
+  id           Int       @id @default(autoincrement())
+  surveyId     Int
+  userId       Int
+  responseDate DateTime  @default(now())
+  survey       Survey    @relation(fields: [surveyId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
+  answers      Answer[]
 }
 
 model Answer {
