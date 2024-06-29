@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app import crud
-from app.routers import user
+from app.routers import user, survey
 
 app = FastAPI()
 
 app.include_router(user.router, prefix="/users", tags=["users"])
+app.include_router(survey.router, prefix="/surveys", tags=["surveys"])
 
 origins = [
     "http://localhost",

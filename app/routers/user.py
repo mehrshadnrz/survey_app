@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from app import schemas, crud, auth
+from app import schemas, crud, auth, dependencies
 
 
 router = APIRouter()
@@ -28,19 +28,5 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     return {"message": "Login successful", "access_token": access_token, "token_type": "bearer"}
 
 @router.get("/me", response_model=schemas.UserCreate)
-async def get_current_user(token: str = Depends(auth.oauth2_scheme)):
-    payload = auth.decode_access_token(token)
-    if payload is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    user = await crud.get_user_by_email(email=payload["sub"])
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return user
+async def get_current_user_profile(current_user: dict = Depends(dependencies.get_current_user)):
+    return current_user
