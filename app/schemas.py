@@ -1,15 +1,11 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 
 # User
 class UserCreate(BaseModel):
     username: str
-    email: str
-    password: str
-
-class UserLogin(BaseModel):
     email: str
     password: str
 
@@ -35,6 +31,45 @@ class SurveyResponse(SurveyBase):
     id: int
     creationDate: datetime
     authorId: int
+
+    class Config:
+        orm_mode: True
+
+
+# Option
+class OptionBase(BaseModel):
+    optionText: str
+
+class OptionCreate(OptionBase):
+    pass
+
+class OptionUpdate(OptionBase):
+    pass
+
+class OptionResponse(OptionBase):
+    id: int
+    questionId: int
+
+    class Config:
+        orm_mode: True
+
+
+# Question
+class QuestionBase(BaseModel):
+    questionText: str
+    questionType: str
+    correctAnswer: Optional[str] = None
+
+class QuestionCreate(QuestionBase):
+    options: List[OptionCreate]
+
+class QuestionUpdate(QuestionBase):
+    options: List[OptionUpdate]
+
+class QuestionResponse(QuestionBase):
+    id: int
+    surveyId: int
+    options: List[OptionResponse]
 
     class Config:
         orm_mode: True

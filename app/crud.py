@@ -1,6 +1,12 @@
 from prisma import Prisma
-from app.schemas import UserCreate, SurveyCreate, SurveyUpdate
 from app.auth import get_password_hash
+from app.schemas import (
+    UserCreate,
+    SurveyCreate,
+    SurveyUpdate,
+    QuestionCreate,
+    QuestionUpdate,
+)
 
 prisma = Prisma()
 
@@ -42,3 +48,55 @@ async def update_survey(survey_id: int, survey: SurveyUpdate):
 
 async def delete_survey(survey_id: int):
     return await prisma.survey.delete(where={"id": survey_id})
+
+
+# Question
+async def create_question(survey_id: int, question: QuestionCreate):
+    question_data = question.dict(exclude={"options"})
+    question_data['surveyId'] = survey_id
+    created_question = await prisma.question.create(data=question_data)
+
+    for option in question.options:
+        option_data = option.dict()
+        option_data['questionId'] = created_question.id
+        await prisma.option.create(data=option_data)
+
+    return created_question
+
+async def get_question_by_id(question_id: int):
+    return await prisma.question.find_unique(
+        where={"id": question_id},
+        include={"options": True}
+    )
+
+async def list_survey_questions(survey_id: int):
+    return await prisma.question.find_many(
+        where={"surveyId": survey_id},
+        include={"options": True}
+    )
+
+async def update_question(question_id: int, question: QuestionUpdate):
+    question_data = question.dict(exclude={"options"})
+    updated_question = await prisma.question.update(
+        where={"id": question_id},
+        data=question_data
+    )
+
+    # Update or create options
+    for option in question.options:
+        option_data = option.dict(exclude_unset=True)
+        if option.id:
+            await prisma.option.update(
+                where={"id": option.id},
+                data=option_data
+            )
+        else:
+            option_data['questionId'] = question_id
+            await prisma.option.create(data=option_data)
+
+    return updated_question
+
+async def delete_question(question_id: int):
+    await prisma.option.delete_many(where={"questionId": question_id})
+    deleted_question = await prisma.question.delete(where={"id": question_id})
+    return deleted_question
