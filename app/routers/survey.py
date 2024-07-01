@@ -1,7 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from typing import List
 from app import schemas, crud
-from app.dependencies import get_current_user, get_survey_and_verify_user
+from app.dependencies import (
+    get_current_user,
+    get_survey_and_verify_user,
+    get_question_and_verify_survey
+)
 
 router = APIRouter()
 
@@ -31,50 +35,26 @@ async def delete_survey(existing_survey: dict = Depends(get_survey_and_verify_us
 
 @router.post("/{survey_id}/add_question", response_model=schemas.QuestionResponse)
 async def create_question(
-    survey_id: int, question: schemas.QuestionCreate, survey=Depends(get_survey_and_verify_user)
+    question: schemas.QuestionCreate, survey=Depends(get_survey_and_verify_user)
 ):
     new_question = await crud.create_question(survey.id, question)
     return new_question
 
 @router.get("/{survey_id}/get_question/{question_id}", response_model=schemas.QuestionResponse)
-async def get_question(
-    survey_id: int, question_id: int, survey=Depends(get_survey_and_verify_user)
-):
-    existing_question = await crud.get_question_by_id(question_id)
-    if not existing_question:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
-    if existing_question.surveyId != survey.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
-    return existing_question
+async def get_question(question=Depends(get_question_and_verify_survey)):
+    return question
 
 @router.get("/{survey_id}/list_questions", response_model=schemas.QuestionResponse)
-async def list_question(
-    survey_id: int, survey=Depends(get_survey_and_verify_user)
-):
-    return await crud.list_survey_questions(survey.id)
+async def list_question(survey=Depends(get_survey_and_verify_user)):
+    questions = await crud.list_survey_questions(survey.id)
+    return questions
 
 @router.put("/{survey_id}/update_question/{question_id}", response_model=schemas.QuestionResponse)
-async def update_question(
-    survey_id: int, question_id: int, question: schemas.QuestionUpdate, survey=Depends(get_survey_and_verify_user)
-):
-    existing_question = await crud.get_question_by_id(question_id)
-    if not existing_question:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
-    if existing_question.surveyId != survey.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
-
-    updated_question = await crud.update_question(question_id, question)
+async def update_question(question: schemas.QuestionUpdate, existing_question=Depends(get_question_and_verify_survey)):
+    updated_question = await crud.update_question(existing_question.id, question)
     return updated_question
 
 @router.delete("/{survey_id}/delete_question/{question_id}", response_model=schemas.QuestionResponse)
-async def delete_question(
-    survey_id: int, question_id: int, survey=Depends(get_survey_and_verify_user)
-):
-    existing_question = await crud.get_question_by_id(question_id)
-    if not existing_question:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
-    if existing_question.surveyId != survey.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
-
-    deleted_question = await crud.delete_question(question_id)
+async def delete_question(question=Depends(get_question_and_verify_survey)):
+    deleted_question = await crud.delete_question(question.id)
     return deleted_question

@@ -6,6 +6,7 @@ from app.schemas import (
     SurveyUpdate,
     QuestionCreate,
     QuestionUpdate,
+    QuestionResponse
 )
 
 prisma = Prisma()
@@ -51,17 +52,21 @@ async def delete_survey(survey_id: int):
 
 
 # Question
-async def create_question(survey_id: int, question: QuestionCreate):
+async def create_question(survey_id: int, question: QuestionCreate) -> QuestionResponse:
     question_data = question.dict(exclude={"options"})
     question_data['surveyId'] = survey_id
     created_question = await prisma.question.create(data=question_data)
-
+    
+    created_options = []
     for option in question.options:
         option_data = option.dict()
         option_data['questionId'] = created_question.id
-        await prisma.option.create(data=option_data)
-
-    return created_question
+        created_option = await prisma.option.create(data=option_data)
+        created_options.append(created_option.dict())
+    
+    created_question_dict = created_question.dict()
+    created_question_dict['options'] = created_options
+    return QuestionResponse(**created_question_dict)
 
 async def get_question_by_id(question_id: int):
     return await prisma.question.find_unique(
