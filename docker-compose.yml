@@ -7,8 +7,7 @@ services:
     command: >
       bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     environment:
-      - DATABASE_URL=postgresql://youruser:yourpassword@db:5432/yourdatabase
-      - SECRET_KEY=your_secret_key
+      - DATABASE_URL=postgresql://survey_user:survey_user@db:5432/surveydb
     ports:
       - "8000:8000"
     volumes:
@@ -20,9 +19,9 @@ services:
     image: postgres:13
     container_name: postgres
     environment:
-      POSTGRES_USER: youruser
-      POSTGRES_PASSWORD: yourpassword
-      POSTGRES_DB: yourdatabase
+      POSTGRES_USER: survey_user
+      POSTGRES_PASSWORD: survey_user
+      POSTGRES_DB: surveydb
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
