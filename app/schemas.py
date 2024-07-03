@@ -44,7 +44,7 @@ class OptionCreate(OptionBase):
     pass
 
 class OptionUpdate(OptionBase):
-    pass
+    id : int
 
 class OptionResponse(OptionBase):
     id: int
@@ -69,7 +69,7 @@ class QuestionUpdate(QuestionBase):
 class QuestionResponse(QuestionBase):
     id: int
     surveyId: int
-    options: List[OptionResponse]
+    options: Optional[List[OptionResponse]]
 
     class Config:
         orm_mode: True

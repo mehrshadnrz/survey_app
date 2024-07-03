@@ -44,7 +44,7 @@ async def create_question(
 async def get_question(question=Depends(get_question_and_verify_survey)):
     return question
 
-@router.get("/{survey_id}/list_questions", response_model=schemas.QuestionResponse)
+@router.get("/{survey_id}/list_questions", response_model=List[schemas.QuestionResponse])
 async def list_question(survey=Depends(get_survey_and_verify_user)):
     questions = await crud.list_survey_questions(survey.id)
     return questions

@@ -66,7 +66,7 @@ async def create_question(survey_id: int, question: QuestionCreate) -> QuestionR
     
     created_question_dict = created_question.dict()
     created_question_dict['options'] = created_options
-    return QuestionResponse(**created_question_dict)
+    return created_question_dict
 
 async def get_question_by_id(question_id: int):
     return await prisma.question.find_unique(
@@ -75,10 +75,11 @@ async def get_question_by_id(question_id: int):
     )
 
 async def list_survey_questions(survey_id: int):
-    return await prisma.question.find_many(
+    question_list = await prisma.question.find_many(
         where={"surveyId": survey_id},
         include={"options": True}
     )
+    return question_list
 
 async def update_question(question_id: int, question: QuestionUpdate):
     question_data = question.dict(exclude={"options"})
@@ -88,20 +89,25 @@ async def update_question(question_id: int, question: QuestionUpdate):
     )
 
     # Update or create options
+    updated_options = []
     for option in question.options:
         option_data = option.dict(exclude_unset=True)
-        if option.id:
-            await prisma.option.update(
-                where={"id": option.id},
-                data=option_data
-            )
-        else:
-            option_data['questionId'] = question_id
-            await prisma.option.create(data=option_data)
+        updated_option = await prisma.option.update(
+            where={"id": option.id},
+            data=option_data
+        )
+        updated_options.append(updated_option.dict())
 
-    return updated_question
+    updated_question_dict = updated_question.dict()
+    updated_question_dict['options'] = updated_options
+    return updated_question_dict
 
 async def delete_question(question_id: int):
+    to_delete_question = await prisma.question.find_unique(
+        where={"id": question_id},
+        include={"options": True}
+    )
     await prisma.option.delete_many(where={"questionId": question_id})
-    deleted_question = await prisma.question.delete(where={"id": question_id})
-    return deleted_question
+    await prisma.question.delete(where={"id": question_id})
+
+    return to_delete_question
