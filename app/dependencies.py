@@ -47,9 +47,7 @@ async def verify_author(
 async def verify_question(
         question_id: int,
         survey: dict = Depends(verify_survey),
-        dependencies=[
-            Depends(verify_author),
-        ]
+        current_user: dict = Depends(verify_author)
 ):
     question = await crud.get_question_by_id(question_id)
     if not question:
@@ -65,10 +63,10 @@ async def verify_question(
 
 async def check_existing_response(
     current_user: dict = Depends(get_current_user),
-    survey_id: dict = Depends(verify_survey),
+    survey: dict = Depends(verify_survey),
 ):
     existing_response = await crud.get_response_by_survey_and_user(
-        survey_id, current_user.id
+        survey.id, current_user.id
     )
     if existing_response:
         raise HTTPException(

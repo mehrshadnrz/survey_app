@@ -7,7 +7,6 @@ from app.schemas import (
     QuestionCreate,
     QuestionUpdate,
     QuestionResponse,
-    ResponseCreate,
     AnswerCreate,
 )
 
@@ -92,7 +91,6 @@ async def update_question(question_id: int, question: QuestionUpdate):
         data=question_data
     )
 
-    # Update or create options
     updated_options = []
     for option in question.options:
         option_data = option.dict(exclude_unset=True)
@@ -130,10 +128,13 @@ async def list_responses_for_survey(survey_id: int):
 
 
 # Answer
-async def create_answer(response_id: int, answer: AnswerCreate):
-    answer_data = answer.dict()
+async def create_answer(response_id: int, answer_data: dict):
+    print(answer_data, "==================")
     answer_data['responseId'] = response_id
     return await prisma.answer.create(data=answer_data)
 
 async def list_answers_for_response(response_id: int):
     return await prisma.answer.find_many(where={"responseId": response_id})
+
+async def get_answer(response_id: int, question_id: int):
+    return await prisma.answer.find_first(where={"responseId": response_id, "questionId": question_id})

@@ -22,7 +22,7 @@ async def create_survey(
 @router.get("/{survey_id}", response_model=schemas.SurveyResponse)
 async def get_survey(
     survey: dict = Depends(verify_survey),
-    dependencies=Depends(verify_author)
+    currnet_user: dict = Depends(verify_author)
 ):
     return survey
 
@@ -37,7 +37,7 @@ async def list_surveys(current_user: dict = Depends(get_current_user)):
 async def update_survey(
     survey: schemas.SurveyUpdate,
     existing_survey: dict = Depends(verify_survey),
-    dependencies=Depends(verify_author)
+    currnet_user: dict = Depends(verify_author)
 ):
     updated_survey = await crud.update_survey(existing_survey.id, survey)
     return updated_survey
@@ -46,7 +46,7 @@ async def update_survey(
 @router.delete("/{survey_id}", response_model=schemas.SurveyResponse)
 async def delete_survey(
     existing_survey: dict = Depends(verify_survey),
-    dependencies=Depends(verify_author)
+    currnet_user: dict = Depends(verify_author)
 ):
     deleted_survey = await crud.delete_survey(existing_survey.id)
     return deleted_survey
@@ -56,7 +56,7 @@ async def delete_survey(
 async def create_question(
     question: schemas.QuestionCreate,
     survey=Depends(verify_survey),
-    dependencies=Depends(verify_author)
+    currnet_user: dict = Depends(verify_author)
 ):
     new_question = await crud.create_question(survey.id, question)
     return new_question
@@ -74,7 +74,7 @@ async def get_question(question=Depends(verify_question)):
 )
 async def list_question(
     survey=Depends(verify_survey),
-    dependencies=Depends(verify_author),
+    currnet_user: dict = Depends(verify_author),
 ):
     questions = await crud.list_survey_questions(survey.id)
     return questions
