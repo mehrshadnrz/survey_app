@@ -6,10 +6,14 @@ from app.schemas import (
     SurveyUpdate,
     QuestionCreate,
     QuestionUpdate,
-    QuestionResponse
+    QuestionResponse,
+    ResponseCreate,
+    AnswerCreate,
 )
 
+
 prisma = Prisma()
+
 
 # User
 async def create_user(user: UserCreate):
@@ -111,3 +115,25 @@ async def delete_question(question_id: int):
     await prisma.question.delete(where={"id": question_id})
 
     return to_delete_question
+
+
+# Response
+async def create_response(survey_id, user_id: int):
+    response_data = {"surveyId": survey_id, "userId": user_id}
+    return await prisma.response.create(data=response_data)
+
+async def get_response_by_survey_and_user(survey_id: int, user_id: int):
+    return await prisma.response.find_first(where={"surveyId": survey_id, "userId": user_id}, include={"answers": True})
+
+async def list_responses_for_survey(survey_id: int):
+    return await prisma.response.find_many(where={"surveyId": survey_id})
+
+
+# Answer
+async def create_answer(response_id: int, answer: AnswerCreate):
+    answer_data = answer.dict()
+    answer_data['responseId'] = response_id
+    return await prisma.answer.create(data=answer_data)
+
+async def list_answers_for_response(response_id: int):
+    return await prisma.answer.find_many(where={"responseId": response_id})

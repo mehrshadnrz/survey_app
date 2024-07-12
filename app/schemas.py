@@ -73,3 +73,37 @@ class QuestionResponse(QuestionBase):
 
     class Config:
         orm_mode: True
+
+
+# Response
+class ResponseBase(BaseModel):
+    pass
+
+class ResponseCreate(ResponseBase):
+    pass
+
+class ResponseResponse(ResponseBase):
+    id: int
+    surveyId: int
+    userId: int
+    responseDate: datetime
+
+    class Config:
+        orm_mode: True
+
+
+# Answer
+class AnswerCreate(BaseModel):
+    questionId: int
+    optionId: Optional[int] = None
+    answerText: Optional[str] = None
+
+class AnswerResponse(BaseModel):
+    id: int
+    responseId: int
+    questionId: int
+    optionId: Optional[int] = None
+    answerText: Optional[str] = None
+
+    class Config:
+        orm_mode: True

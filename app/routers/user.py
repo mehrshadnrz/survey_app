@@ -16,7 +16,6 @@ async def register(user: schemas.UserCreate):
 
 @router.post("/login", response_model=schemas.TokenResponse)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    print(form_data.password)
     user = await crud.get_user_by_email_or_username(form_data.username)
     if not user or not auth.verify_password(form_data.password, user.password):
         raise HTTPException(

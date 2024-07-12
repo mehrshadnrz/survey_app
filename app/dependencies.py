@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from app import auth, crud
 
+
 async def get_current_user(token: str = Depends(auth.oauth2_scheme)):
     payload = auth.decode_access_token(token)
     if payload is None:
@@ -9,7 +10,6 @@ async def get_current_user(token: str = Depends(auth.oauth2_scheme)):
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
     user = await crud.get_user_by_email(email=payload["sub"])
     if user is None:
         raise HTTPException(
@@ -17,22 +17,88 @@ async def get_current_user(token: str = Depends(auth.oauth2_scheme)):
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
     return user
 
-async def get_survey_and_verify_user(survey_id: int, current_user: dict = Depends(get_current_user)):
+
+async def verify_survey(
+    survey_id: int,
+):
     survey = await crud.get_survey_by_id(survey_id)
-    if not survey or survey.authorId != current_user.id:
+    if not survey:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Survey not found or access denied",
+            detail="Survey not found",
         )
     return survey
 
-async def get_question_and_verify_survey(question_id: int, survey: dict = Depends(get_survey_and_verify_user)):
+
+async def verify_author(
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(get_current_user),
+):
+    if survey.authorId != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied",
+        )
+    return current_user
+
+
+async def verify_question(
+        question_id: int,
+        survey: dict = Depends(verify_survey),
+        dependencies=[
+            Depends(verify_author),
+        ]
+):
     question = await crud.get_question_by_id(question_id)
     if not question:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Question not found"
+        )
     if question.surveyId != survey.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+        )
     return question
+
+
+async def check_existing_response(
+    current_user: dict = Depends(get_current_user),
+    survey_id: dict = Depends(verify_survey),
+):
+    existing_response = await crud.get_response_by_survey_and_user(
+        survey_id, current_user.id
+    )
+    if existing_response:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Response already exists for this survey",
+        )
+    return existing_response
+
+
+async def verify_response(
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(get_current_user),
+):
+    response = await crud.get_response_by_survey_and_user(survey.id, current_user.id)
+    if not response:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Response not found",
+        )
+    return response
+
+
+async def check_user_access_to_response(
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(get_current_user),
+    response: dict = Depends(verify_response),
+):
+    if response.userId != current_user.id and survey.authorId != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied",
+        )
+    return response
