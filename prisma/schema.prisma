@@ -21,6 +21,10 @@ model Survey {
   title        String
   description  String
   creationDate DateTime  @default(now())
+  start_time   DateTime?
+  end_time     DateTime?
+  isPublic     Boolean   @default(false)
+  viewableByAuthorOnly Boolean  @default(false)
   authorId     Int
   author       User      @relation(fields: [authorId], references: [id], name: "UserSurveys")
   questions    Question[]

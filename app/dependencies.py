@@ -86,6 +86,11 @@ async def verify_response(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Response not found",
         )
+    if survey.viewableByAuthorOnly and survey.authorId != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied",
+        )
     return response
 
 

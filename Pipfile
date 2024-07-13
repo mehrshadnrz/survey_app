@@ -10,7 +10,6 @@ prisma = "*"
 pyjwt = "*"
 passlib = {extras = ["bcrypt"], version = "*"}
 python-dotenv = "*"
-alembic = "*"
 
 [dev-packages]
 

@@ -17,7 +17,7 @@ router = APIRouter()
 async def create_response(
     current_user: dict = Depends(get_current_user),
     survey: dict = Depends(verify_survey),
-    response: dict = Depends(check_existing_response)
+    response: dict = Depends(check_existing_response),
 ):
     created_response = await crud.create_response(survey.id, current_user.id)
     return created_response
@@ -41,7 +41,7 @@ async def list_responses(
 async def create_answer(
     survey_id: int,
     answer: schemas.AnswerCreate,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user), # check if needed
     response: dict = Depends(verify_response),
 ):
     answer_data = answer.dict()

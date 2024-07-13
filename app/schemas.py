@@ -19,6 +19,10 @@ class TokenResponse(BaseModel):
 class SurveyBase(BaseModel):
     title: str
     description: str
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    isPublic: bool = False
+    viewableByAuthorOnly: Optional[bool] = False
 
 class SurveyCreate(SurveyBase):
     pass
@@ -26,6 +30,8 @@ class SurveyCreate(SurveyBase):
 class SurveyUpdate(SurveyBase):
     title: Optional[str] = None
     description: Optional[str] = None
+    isPublic: Optional[bool] = None
+    viewableByAuthorOnly: Optional[bool] = None
 
 class SurveyResponse(SurveyBase):
     id: int

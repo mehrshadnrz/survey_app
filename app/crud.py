@@ -7,7 +7,6 @@ from app.schemas import (
     QuestionCreate,
     QuestionUpdate,
     QuestionResponse,
-    AnswerCreate,
 )
 
 
@@ -38,7 +37,9 @@ async def get_user_by_email_or_username(identifier: str):
 
 # Survey
 async def create_survey(survey: SurveyCreate, user_id: int):
-    return await prisma.survey.create(data={"title": survey.title, "description": survey.description, "authorId": user_id})
+    survey_data = survey.dict()
+    survey_data["authorId"] = user_id
+    return await prisma.survey.create(data=survey_data)
 
 async def get_survey_by_id(survey_id: int):
     return await prisma.survey.find_unique(where={"id": survey_id})
@@ -129,7 +130,6 @@ async def list_responses_for_survey(survey_id: int):
 
 # Answer
 async def create_answer(response_id: int, answer_data: dict):
-    print(answer_data, "==================")
     answer_data['responseId'] = response_id
     return await prisma.answer.create(data=answer_data)
 
