@@ -1,4 +1,5 @@
 from fastapi import Depends, HTTPException, status
+from app.schemas import Role
 from app import auth, crud
 
 
@@ -18,6 +19,24 @@ async def get_current_user(token: str = Depends(auth.oauth2_scheme)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user
+
+
+async def get_current_admin_user(current_user: dict = Depends(get_current_user)):
+    if current_user.role not in [Role.ADMIN.value, Role.SUPER_ADMIN.value]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: Admin or Super Admin role required",
+        )
+    return current_user
+
+
+async def get_current_super_admin_user(current_user: dict = Depends(get_current_user)):
+    if current_user.role != Role.SUPER_ADMIN.value:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: Super Admin role required",
+        )
+    return current_user
 
 
 async def verify_survey(

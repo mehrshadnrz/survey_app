@@ -7,11 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
 model User {
-  id       Int      @id @default(autoincrement())
-  username String   @unique
-  email    String   @unique
-  password String
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  email         String   @unique
+  password      String
+  first_name    String
+  last_name     String
+  phone_number  String   @unique
+  identity_code String   @unique
+  role     Role     @default(USER)
   surveys  Survey[] @relation("UserSurveys")
   responses Response[]
 }

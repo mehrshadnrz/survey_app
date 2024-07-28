@@ -16,7 +16,16 @@ prisma = Prisma()
 # User
 async def create_user(user: UserCreate):
     hashed_password = get_password_hash(user.password)
-    user_data = {"username": user.username, "email": user.email, "password": hashed_password}
+    user_data = {
+        "username": user.username,
+        "email": user.email,
+        "password": hashed_password,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "phone_number": user.phone_number,
+        "identity_code": user.identity_code,
+        "role": user.role.value
+    }
     return await prisma.user.create(data=user_data)
 
 async def get_user_by_email(email: str):

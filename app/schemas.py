@@ -1,18 +1,43 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
+from enum import Enum
 
 
 # User
+class Role(str, Enum):
+    USER = "USER"
+    ADMIN = "ADMIN"
+    SUPER_ADMIN = "SUPER_ADMIN"
+
 class UserCreate(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: str
+    first_name: str
+    last_name: str
+    phone_number: str
+    identity_code: str
+    role: Role = Role.USER
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    first_name: str
+    last_name: str
+    phone_number: str
+    identity_code: str
+    role: Role
+
+    class Config:
+        orm_mode: True
 
 class TokenResponse(BaseModel):
     message: str
     access_token: str
     token_type: str
+    role: Role
 
 
 # Survey
