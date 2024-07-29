@@ -1,7 +1,9 @@
 from prisma import Prisma
 from app.auth import get_password_hash
 from app.schemas import (
+    Role,
     UserCreate,
+    UserUpdate,
     SurveyCreate,
     SurveyUpdate,
     QuestionCreate,
@@ -13,7 +15,9 @@ from app.schemas import (
 prisma = Prisma()
 
 
-# User
+"""
+User
+"""
 async def create_user(user: UserCreate):
     hashed_password = get_password_hash(user.password)
     user_data = {
@@ -24,7 +28,7 @@ async def create_user(user: UserCreate):
         "last_name": user.last_name,
         "phone_number": user.phone_number,
         "identity_code": user.identity_code,
-        "role": user.role.value
+        "role": Role.USER.value
     }
     return await prisma.user.create(data=user_data)
 
@@ -43,8 +47,34 @@ async def get_user_by_email_or_username(identifier: str):
         user = await get_user_by_username(identifier)
     return user
 
+async def create_admin(user: UserCreate):
+    hashed_password = get_password_hash(user.password)
+    user_data = {
+        "username": user.username,
+        "email": user.email,
+        "password": hashed_password,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "phone_number": user.phone_number,
+        "identity_code": user.identity_code,
+        "role": Role.ADMIN.value
+    }
+    return await prisma.user.create(data=user_data)
 
-# Survey
+async def update_user(user_id: int, user: UserUpdate):
+    user_data = user.dict(exclude_unset=True)
+    return await prisma.user.update(where={"id": user_id}, data=user_data)
+
+async def list_admin_users():
+    return await prisma.user.find_many(where={"role": Role.ADMIN.value})
+
+async def list_users():
+    return await prisma.user.find_many(where={"role": Role.USER.value})
+
+
+"""
+Survey
+"""
 async def create_survey(survey: SurveyCreate, user_id: int):
     survey_data = survey.dict()
     survey_data["authorId"] = user_id
@@ -64,7 +94,9 @@ async def delete_survey(survey_id: int):
     return await prisma.survey.delete(where={"id": survey_id})
 
 
-# Question
+"""
+Question
+"""
 async def create_question(survey_id: int, question: QuestionCreate) -> QuestionResponse:
     question_data = question.dict(exclude={"options"})
     question_data['surveyId'] = survey_id
@@ -125,7 +157,9 @@ async def delete_question(question_id: int):
     return to_delete_question
 
 
-# Response
+"""
+Response
+"""
 async def create_response(survey_id, user_id: int):
     response_data = {"surveyId": survey_id, "userId": user_id}
     return await prisma.response.create(data=response_data)
@@ -137,7 +171,9 @@ async def list_responses_for_survey(survey_id: int):
     return await prisma.response.find_many(where={"surveyId": survey_id})
 
 
-# Answer
+"""
+Answer
+"""
 async def create_answer(response_id: int, answer_data: dict):
     answer_data['responseId'] = response_id
     return await prisma.answer.create(data=answer_data)

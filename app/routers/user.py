@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from app import schemas, crud, auth, dependencies
@@ -32,3 +33,27 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @router.get("/me", response_model=schemas.UserResponse)
 async def get_current_user_profile(current_user: dict = Depends(dependencies.get_current_user)):
     return current_user
+
+
+@router.put("/me", response_model=schemas.UserResponse)
+async def update_user(user: schemas.UserUpdate, current_user: dict = Depends(dependencies.get_current_user)):
+    updated_user = await crud.update_user(current_user.id, user)
+    return updated_user
+
+
+@router.post("/admins", response_model=schemas.UserResponse)
+async def register_admin(user: schemas.UserCreate, current_user: dict = Depends(dependencies.get_current_super_admin_user)):
+    db_user = await crud.get_user_by_email(user.email)
+    if db_user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+    created_admin = await crud.create_admin(user)
+    return created_admin
+
+
+@router.get("/admins", response_model=List[schemas.UserResponse])
+async def list_admins(current_user: dict = Depends(dependencies.get_current_super_admin_user)):
+    return await crud.list_admin_users()
+
+@router.get("/", response_model=List[schemas.UserResponse])
+async def list_users(current_user: dict = Depends(dependencies.get_current_admin_user)):
+    return await crud.list_users()

@@ -18,7 +18,14 @@ class UserCreate(BaseModel):
     last_name: str
     phone_number: str
     identity_code: str
-    role: Role = Role.USER
+
+class UserUpdate(BaseModel):
+    username: Optional[str]
+    email: Optional[EmailStr]
+    first_name: Optional[str]
+    last_name: Optional[str]
+    phone_number: Optional[str]
+    identity_code: Optional[str]
 
 class UserResponse(BaseModel):
     id: int
