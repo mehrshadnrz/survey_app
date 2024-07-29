@@ -13,6 +13,14 @@ enum Role {
   SUPER_ADMIN
 }
 
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TEXT_INPUT
+  RATING
+  FILE_UPLOAD
+  DATE_PICKER
+}
+
 model User {
   id            Int      @id @default(autoincrement())
   username      String   @unique
@@ -46,8 +54,9 @@ model Question {
   id            Int       @id @default(autoincrement())
   surveyId      Int
   questionText  String
-  questionType  String
   correctAnswer String
+  type          QuestionType
+  image         String?
   survey        Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   options       Option[]
   answers       Answer[]
@@ -57,6 +66,7 @@ model Option {
   id         Int      @id @default(autoincrement())
   questionId Int
   optionText String
+  image      String?
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   answers    Answer[]
 }

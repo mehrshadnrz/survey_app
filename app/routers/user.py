@@ -14,7 +14,7 @@ async def register(user: schemas.UserCreate):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
     created_user = await crud.create_user(user)
     access_token = auth.create_access_token(data={"sub": created_user.email})
-    return {"message": "Register successful", "access_token": access_token, "token_type": "bearer", "role": created_user.role.value}
+    return {"message": "Register successful", "access_token": access_token, "token_type": "bearer", "role": created_user.role}
 
 
 @router.post("/login", response_model=schemas.TokenResponse)
@@ -27,7 +27,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = auth.create_access_token(data={"sub": user.email})
-    return {"message": "Login successful", "access_token": access_token, "token_type": "bearer", "role": user.role.value}
+    return {"message": "Login successful", "access_token": access_token, "token_type": "bearer", "role": user.role}
 
 
 @router.get("/me", response_model=schemas.UserResponse)

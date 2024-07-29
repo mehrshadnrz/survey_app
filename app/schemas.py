@@ -77,6 +77,7 @@ class SurveyResponse(SurveyBase):
 # Option
 class OptionBase(BaseModel):
     optionText: str
+    image: Optional[str] = None
 
 class OptionCreate(OptionBase):
     pass
@@ -93,10 +94,18 @@ class OptionResponse(OptionBase):
 
 
 # Question
+class QuestionType(str, Enum):
+    MULTIPLE_CHOICE = "MULTIPLE_CHOICE"
+    TEXT_INPUT = "TEXT_INPUT"
+    RATING = "RATING"
+    FILE_UPLOAD = "FILE_UPLOAD"
+    DATE_PICKER = "DATE_PICKER"
+
 class QuestionBase(BaseModel):
     questionText: str
-    questionType: str
     correctAnswer: Optional[str] = None
+    image: Optional[str] = None
+    questionType: QuestionType
 
 class QuestionCreate(QuestionBase):
     options: List[OptionCreate]
