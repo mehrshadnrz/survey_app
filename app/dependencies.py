@@ -51,6 +51,23 @@ async def verify_survey(
     return survey
 
 
+async def verify_public_survey(
+    survey_id: int,
+):
+    survey = await crud.get_survey_by_id(survey_id)
+    if not survey:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Survey not found",
+        )
+    if survey.isPublic is not True:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Survey not found",
+        )
+    return survey
+
+
 async def verify_author(
     survey: dict = Depends(verify_survey),
     current_user: dict = Depends(get_current_user),
@@ -67,6 +84,23 @@ async def verify_question(
         question_id: int,
         survey: dict = Depends(verify_survey),
         current_user: dict = Depends(verify_author)
+):
+    question = await crud.get_question_by_id(question_id)
+    if not question:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Question not found"
+        )
+    if question.surveyId != survey.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+        )
+    return question
+
+
+async def verify_public_question(
+        question_id: int,
+        survey: dict = Depends(verify_public_survey),
+        current_user: dict = Depends(get_current_user)
 ):
     question = await crud.get_question_by_id(question_id)
     if not question:

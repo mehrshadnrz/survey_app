@@ -93,6 +93,8 @@ async def update_survey(survey_id: int, survey: SurveyUpdate):
 async def delete_survey(survey_id: int):
     return await prisma.survey.delete(where={"id": survey_id})
 
+async def list_public_surveys():
+    return await prisma.survey.find_many(where={"isPublic": True})
 
 """
 Question
