@@ -55,7 +55,7 @@ model Question {
   surveyId      Int
   questionText  String
   correctAnswer String
-  type          QuestionType
+  questionType          QuestionType
   image         String?
   survey        Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   options       Option[]
