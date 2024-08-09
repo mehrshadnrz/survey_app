@@ -9,6 +9,9 @@ from app.schemas import (
     QuestionCreate,
     QuestionUpdate,
     QuestionResponse,
+    FactorCreate,
+    FactorUpdate,
+    QuestionType,
 )
 
 
@@ -97,6 +100,28 @@ async def list_public_surveys():
     return await prisma.survey.find_many(where={"isPublic": True})
 
 """
+Factor
+"""
+async def create_factor(factor: FactorCreate, survey_id: int):
+    data = factor.dict()
+    data["surveyId"] = survey_id
+    return await prisma.factor.create(data=data)
+
+async def get_factor_by_id(factor_id: int):
+    return await prisma.factor.find_unique(where={"id": factor_id})
+
+async def list_survey_factors(survey_id: int):
+    return await prisma.factor.find_many(where={"surveyId": survey_id})
+
+async def update_factor(factor_id: int, factor: FactorUpdate):
+    update_data = factor.dict(exclude_unset=True)
+    return await prisma.factor.update(where={"id": factor_id}, data=update_data)
+
+async def delete_factor(factor_id: int):
+    return await prisma.factor.delete(where={"id": factor_id})
+
+
+"""
 Question
 """
 async def create_question(survey_id: int, question: QuestionCreate) -> QuestionResponse:
@@ -106,10 +131,22 @@ async def create_question(survey_id: int, question: QuestionCreate) -> QuestionR
     
     created_options = []
     for option in question.options:
-        option_data = option.dict()
+        option_data = option.dict(exclude={"factorImpacts"})
         option_data['questionId'] = created_question.id
         created_option = await prisma.option.create(data=option_data)
-        created_options.append(created_option.dict())
+        created_option_dict = created_option.dict()
+        
+        if question.questionType == QuestionType.PSYCOLOGY:
+            created_impacts = []
+            for impact in option.factorImpacts:
+                impact_data = impact.dict()
+                impact_data['optionId'] = created_option.id
+                created_impact = await prisma.factorimpact.create(data=impact_data)
+                created_impacts.append(created_impact.dict())
+
+            created_option_dict['factorImpacts'] = created_impacts
+        
+        created_options.append(created_option_dict)
     
     created_question_dict = created_question.dict()
     created_question_dict['options'] = created_options
@@ -118,18 +155,30 @@ async def create_question(survey_id: int, question: QuestionCreate) -> QuestionR
 async def get_question_by_id(question_id: int):
     return await prisma.question.find_unique(
         where={"id": question_id},
-        include={"options": True}
+        include={
+            "options": {
+                "include": {
+                    "factorImpacts": True,
+                }
+            }
+        }
     )
 
 async def list_survey_questions(survey_id: int):
     question_list = await prisma.question.find_many(
         where={"surveyId": survey_id},
-        include={"options": True}
+        include={
+            "options": {
+                "include": {
+                    "factorImpacts": True
+                }
+            }
+        }
     )
     return question_list
 
 async def update_question(question_id: int, question: QuestionUpdate):
-    question_data = question.dict(exclude={"options"})
+    question_data = question.dict(exclude_unset=True, exclude={"options"})
     updated_question = await prisma.question.update(
         where={"id": question_id},
         data=question_data
@@ -137,12 +186,26 @@ async def update_question(question_id: int, question: QuestionUpdate):
 
     updated_options = []
     for option in question.options:
-        option_data = option.dict(exclude_unset=True)
+        option_data = option.dict(exclude_unset=True, exclude={"factorImpacts"})
         updated_option = await prisma.option.update(
             where={"id": option.id},
             data=option_data
         )
-        updated_options.append(updated_option.dict())
+
+        updated_option_dict = updated_option.dict()
+        
+        if question.questionType == QuestionType.PSYCOLOGY:
+            updated_impacts = []
+            for impact in option.factorImpacts:
+                impact_data = impact.dict(exclude_unset=True)
+                updated_impact = await prisma.factorimpact.update(
+                    where={"id": impact.id},
+                    data=impact_data
+                )                
+                updated_impacts.append(updated_impact.dict())
+            updated_option_dict['factorImpacts'] = updated_impacts
+        
+        updated_options.append(updated_option_dict)
 
     updated_question_dict = updated_question.dict()
     updated_question_dict['options'] = updated_options
@@ -151,8 +214,19 @@ async def update_question(question_id: int, question: QuestionUpdate):
 async def delete_question(question_id: int):
     to_delete_question = await prisma.question.find_unique(
         where={"id": question_id},
-        include={"options": True}
+        include={
+            "options": {
+                "include": {
+                    "factorImpacts": True
+                }
+            }
+        }
     )
+
+    options = to_delete_question.options
+    for option in options:
+        await prisma.factorimpact.delete_many(where={"optionId": option.id})
+
     await prisma.option.delete_many(where={"questionId": question_id})
     await prisma.question.delete(where={"id": question_id})
 

@@ -19,6 +19,7 @@ enum QuestionType {
   RATING
   FILE_UPLOAD
   DATE_PICKER
+  PSYCOLOGY
 }
 
 model User {
@@ -48,6 +49,7 @@ model Survey {
   author       User      @relation(fields: [authorId], references: [id], name: "UserSurveys")
   questions    Question[]
   responses    Response[]
+  factors      Factor[]
 }
 
 model Question {
@@ -69,6 +71,7 @@ model Option {
   image      String?
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   answers    Answer[]
+  factorImpacts FactorImpact[]
 }
 
 model Response {
@@ -90,4 +93,22 @@ model Answer {
   response   Response  @relation(fields: [responseId], references: [id])
   question   Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
   option     Option?   @relation(fields: [optionId], references: [id], onDelete: Cascade)
+}
+
+model Factor {
+  id         Int       @id @default(autoincrement())
+  name       String
+  surveyId   Int
+  survey     Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  impacts    FactorImpact[]
+}
+
+model FactorImpact {
+  id         Int       @id @default(autoincrement())
+  factorId   Int
+  optionId   Int
+  impact     Int
+  plus       Boolean
+  factor     Factor    @relation(fields: [factorId], references: [id], onDelete: Cascade)
+  option     Option    @relation(fields: [optionId], references: [id], onDelete: Cascade)
 }

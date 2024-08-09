@@ -16,6 +16,7 @@ UPLOAD_DIR = "uploads/"
 # Ensure the upload directory exists
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+# TODO: make it one api in create question
 @app.post("/upload-image/")
 async def upload_image(file: UploadFile = File(...), current_user: dict = Depends(dependencies.get_current_user)):
     file_location = os.path.join(UPLOAD_DIR, file.filename)
@@ -23,6 +24,7 @@ async def upload_image(file: UploadFile = File(...), current_user: dict = Depend
         shutil.copyfileobj(file.file, buffer)
     return {"filename": file.filename}
 
+# TODO: make it one api in get and list question
 @app.get("/images/{filename}")
 async def get_image(filename: str, current_user: dict = Depends(dependencies.get_current_user)):
     file_path = os.path.join(UPLOAD_DIR, filename)

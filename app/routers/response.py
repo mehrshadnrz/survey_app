@@ -23,6 +23,17 @@ async def create_response(
     return created_response
 
 
+@router.post("/private/{survey_id}", response_model=schemas.ResponseResponse)
+async def create_private_response(
+    response: schemas.PrivateResponseCreate,
+    current_user: dict = Depends(verify_author),
+    survey: dict = Depends(verify_survey),
+    check_response: dict = Depends(check_existing_response),
+):
+    created_response = await crud.create_response(survey.id, response.userId)
+    return created_response
+
+
 @router.get("/{survey_id}", response_model=schemas.ResponseResponse)
 async def get_response(response=Depends(check_user_access_to_response)):
     return response
@@ -63,3 +74,5 @@ async def list_answers(
 ):
     answers = await crud.list_answers_for_response(response.id)
     return answers
+
+# TODO: calculate score APIs and ...

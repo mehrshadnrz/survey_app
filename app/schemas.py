@@ -4,7 +4,9 @@ from datetime import datetime
 from enum import Enum
 
 
-# User
+"""
+User
+"""
 class Role(str, Enum):
     USER = "USER"
     ADMIN = "ADMIN"
@@ -46,8 +48,10 @@ class TokenResponse(BaseModel):
     token_type: str
     role: Role
 
-
-# Survey
+"""
+Survey
+"""
+# TODO: isActive, duration
 class SurveyBase(BaseModel):
     title: str
     description: str
@@ -74,32 +78,83 @@ class SurveyResponse(SurveyBase):
         orm_mode: True
 
 
-# Option
-class OptionBase(BaseModel):
-    optionText: str
-    image: Optional[str] = None
+"""
+Factor
+"""
+class FactorBase(BaseModel):
+    name: str
 
-class OptionCreate(OptionBase):
+class FactorCreate(FactorBase):
     pass
 
-class OptionUpdate(OptionBase):
-    id : int
+class FactorUpdate(FactorBase):
+    pass
 
-class OptionResponse(OptionBase):
+class FactorResponse(FactorBase):
     id: int
-    questionId: int
+    surveyId: int
 
     class Config:
         orm_mode: True
 
 
-# Question
+"""
+Factor Impact
+"""
+class FactorImpactBase(BaseModel):
+    factorId: int
+    impact: int
+    plus: bool
+
+class FactorImpactCreate(FactorImpactBase):
+    pass
+
+class FactorImpactUpdate(FactorImpactBase):
+    id: int
+
+class FactorImpactResponse(FactorImpactBase):
+    id: int
+    optionId: int
+
+    class Config:
+        orm_mode: True
+
+ 
+"""
+Option
+"""
+# TODO: order
+class OptionBase(BaseModel):
+    optionText: str
+    image: Optional[str] = None
+
+class OptionCreate(OptionBase):
+    factorImpacts: Optional[List[FactorImpactCreate]]
+
+class OptionUpdate(OptionBase):
+    id : int
+    factorImpacts: Optional[List[FactorImpactUpdate]]
+
+class OptionResponse(OptionBase):
+    id: int
+    questionId: int
+    factorImpacts: Optional[List[FactorImpactResponse]]
+
+    class Config:
+        orm_mode: True
+
+
+"""
+Question
+"""
+# TODO: order, score, fix correctAnswer
 class QuestionType(str, Enum):
     MULTIPLE_CHOICE = "MULTIPLE_CHOICE"
     TEXT_INPUT = "TEXT_INPUT"
     RATING = "RATING"
     FILE_UPLOAD = "FILE_UPLOAD"
     DATE_PICKER = "DATE_PICKER"
+    PSYCOLOGY = "PSYCOLOGY"
 
 class QuestionBase(BaseModel):
     questionText: str
@@ -122,12 +177,17 @@ class QuestionResponse(QuestionBase):
         orm_mode: True
 
 
-# Response
+"""
+Response
+"""
 class ResponseBase(BaseModel):
     pass
 
 class ResponseCreate(ResponseBase):
     pass
+
+class PrivateResponseCreate(ResponseBase):
+    userId: int
 
 class ResponseResponse(ResponseBase):
     id: int
@@ -139,7 +199,9 @@ class ResponseResponse(ResponseBase):
         orm_mode: True
 
 
-# Answer
+"""
+Answer
+"""
 class AnswerCreate(BaseModel):
     questionId: int
     optionId: Optional[int] = None

@@ -68,6 +68,7 @@ async def create_question(
     "/{survey_id}/get_question/{question_id}", response_model=schemas.QuestionResponse
 )
 async def get_question(question=Depends(verify_question)):
+    print(question, "===========================")
     return question
 
 
@@ -128,8 +129,58 @@ async def get_public_question(question=Depends(verify_public_question)):
     "/{survey_id}/public/list_questions/", response_model=List[schemas.QuestionResponse]
 )
 async def list_public_question(
-    survey=Depends(verify_public_survey),
+    survey: dict =Depends(verify_public_survey),
     currnet_user: dict = Depends(get_current_user),
 ):
     questions = await crud.list_survey_questions(survey.id)
     return questions
+
+
+@router.post("/{survey_id}/factor/", response_model=schemas.FactorResponse)
+async def create_factor(
+    factor: schemas.FactorCreate,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    created_factor = await crud.create_factor(factor, survey.id)
+    return created_factor
+
+
+@router.get("/{survey_id}/factor/{factor_id}", response_model=schemas.FactorResponse)
+async def get_factor(
+    factor_id: int,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    factor = await crud.get_factor_by_id(factor_id)
+    return factor
+
+
+@router.get("/{survey_id}/factors/", response_model=List[schemas.FactorResponse])
+async def list_factor(
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    factors = await crud.list_survey_factors(survey.id)
+    return factors
+
+
+@router.put("/{survey_id}/factor/{factor_id}", response_model=schemas.FactorResponse)
+async def update_factor(
+    factor_id: int,
+    factor: schemas.FactorUpdate,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    updated_factor = await crud.update_factor(factor_id, factor)
+    return updated_factor
+
+
+@router.delete("/{survey_id}/factor/{factor_id}", response_model=schemas.FactorResponse)
+async def delete_factor(
+    factor_id: int,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    factor = await crud.delete_factor(factor_id)
+    return factor
