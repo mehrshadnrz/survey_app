@@ -68,7 +68,6 @@ async def create_question(
     "/{survey_id}/get_question/{question_id}", response_model=schemas.QuestionResponse
 )
 async def get_question(question=Depends(verify_question)):
-    print(question, "===========================")
     return question
 
 

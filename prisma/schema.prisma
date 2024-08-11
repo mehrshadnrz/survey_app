@@ -15,10 +15,8 @@ enum Role {
 
 enum QuestionType {
   MULTIPLE_CHOICE
-  TEXT_INPUT
-  RATING
-  FILE_UPLOAD
-  DATE_PICKER
+  SHORT_TEXT
+  LONG_TEXT
   PSYCOLOGY
 }
 
@@ -56,9 +54,12 @@ model Question {
   id            Int       @id @default(autoincrement())
   surveyId      Int
   questionText  String
-  correctAnswer String
-  questionType          QuestionType
+  correctAnswer String?
+  correctOption Int?
+  questionType  QuestionType
   image         String?
+  order         Int
+  point         Float?
   survey        Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   options       Option[]
   answers       Answer[]
@@ -69,6 +70,7 @@ model Option {
   questionId Int
   optionText String
   image      String?
+  order      Int
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   answers    Answer[]
   factorImpacts FactorImpact[]

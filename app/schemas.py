@@ -97,6 +97,14 @@ class FactorResponse(FactorBase):
     class Config:
         orm_mode: True
 
+class FactorValue(FactorBase):
+    id: int
+    surveyId: int
+    value: int = 0
+
+    class Config:
+        orm_mode: True
+
 
 """
 Factor Impact
@@ -123,9 +131,9 @@ class FactorImpactResponse(FactorImpactBase):
 """
 Option
 """
-# TODO: order
 class OptionBase(BaseModel):
     optionText: str
+    order: int
     image: Optional[str] = None
 
 class OptionCreate(OptionBase):
@@ -147,19 +155,20 @@ class OptionResponse(OptionBase):
 """
 Question
 """
-# TODO: order, score, fix correctAnswer
+# TODO: fix correctAnswer
 class QuestionType(str, Enum):
     MULTIPLE_CHOICE = "MULTIPLE_CHOICE"
-    TEXT_INPUT = "TEXT_INPUT"
-    RATING = "RATING"
-    FILE_UPLOAD = "FILE_UPLOAD"
-    DATE_PICKER = "DATE_PICKER"
+    SHORT_TEXT = "SHORT_TEXT"
+    LONG_TEXT = "LONG_TEXT"
     PSYCOLOGY = "PSYCOLOGY"
 
 class QuestionBase(BaseModel):
     questionText: str
     correctAnswer: Optional[str] = None
+    correctOption: Optional[int] = None
     image: Optional[str] = None
+    order: int
+    point: Optional[float] = None
     questionType: QuestionType
 
 class QuestionCreate(QuestionBase):
@@ -172,6 +181,36 @@ class QuestionResponse(QuestionBase):
     id: int
     surveyId: int
     options: Optional[List[OptionResponse]]
+
+    class Config:
+        orm_mode: True
+
+
+"""
+Answer
+"""
+class AnswerCreate(BaseModel):
+    questionId: int
+    optionId: Optional[int] = None
+    answerText: Optional[str] = None
+
+class AnswerResponse(BaseModel):
+    id: int
+    responseId: int
+    questionId: int
+    optionId: Optional[int] = None
+    answerText: Optional[str] = None
+
+    class Config:
+        orm_mode: True
+
+class AnswerResponseWithScore(BaseModel):
+    id: int
+    responseId: int
+    questionId: int
+    optionId: Optional[int] = None
+    answerText: Optional[str] = None
+    score: Optional[float] = None
 
     class Config:
         orm_mode: True
@@ -198,21 +237,24 @@ class ResponseResponse(ResponseBase):
     class Config:
         orm_mode: True
 
-
-"""
-Answer
-"""
-class AnswerCreate(BaseModel):
-    questionId: int
-    optionId: Optional[int] = None
-    answerText: Optional[str] = None
-
-class AnswerResponse(BaseModel):
+class ResponseWithAnswers(ResponseBase):
     id: int
-    responseId: int
-    questionId: int
-    optionId: Optional[int] = None
-    answerText: Optional[str] = None
+    surveyId: int
+    userId: int
+    responseDate: datetime
+    answers: List[AnswerResponse]
+
+    class Config:
+        orm_mode: True
+
+class ResponseWithScore(ResponseBase):
+    id: int
+    surveyId: int
+    userId: int
+    responseDate: datetime
+    answers: List[AnswerResponseWithScore]
+    totalScore: Optional[float] = None
+    factorValues: Optional[List[FactorValue]]
 
     class Config:
         orm_mode: True

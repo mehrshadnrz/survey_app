@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
-from app import schemas, crud
+from app import schemas, crud, result
 from app.dependencies import (
     get_current_user,
     check_existing_response,
@@ -34,8 +34,23 @@ async def create_private_response(
     return created_response
 
 
-@router.get("/{survey_id}", response_model=schemas.ResponseResponse)
+@router.get("/{survey_id}", response_model=schemas.ResponseWithAnswers)
 async def get_response(response=Depends(check_user_access_to_response)):
+    return response
+
+
+@router.get("/{survey_id}/user/{user_id}", response_model=schemas.ResponseWithAnswers)
+async def get_user_response(
+    user_id: int,
+    current_user: dict = Depends(verify_author),
+    survey: dict = Depends(verify_survey),
+):
+    response = await crud.get_response_by_survey_and_user(survey.id, user_id)
+    if not response:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Response not found",
+        )
     return response
 
 
@@ -75,4 +90,18 @@ async def list_answers(
     answers = await crud.list_answers_for_response(response.id)
     return answers
 
-# TODO: calculate score APIs and ...
+
+@router.get("/score/{survey_id}/user/{user_id}", response_model=schemas.ResponseWithScore)
+async def get_user_response_with_score(
+    user_id: int,
+    current_user: dict = Depends(verify_author),
+    survey: dict = Depends(verify_survey),
+):
+    response = await crud.get_response_by_survey_and_user(survey.id, user_id)
+    if not response:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Response not found",
+        )
+    response_with_score = await result.response_with_score(response)
+    return response_with_score

@@ -232,6 +232,15 @@ async def delete_question(question_id: int):
 
     return to_delete_question
 
+async def get_option(option_id: int):
+    option = await prisma.option.find_unique(
+        where={"id": option_id},
+        include={
+            "factorImpacts": True
+        }
+    )
+    return option
+
 
 """
 Response
