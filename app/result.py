@@ -10,9 +10,10 @@ async def calculate_text_score(
     return 0
 
 
+# TODO: use match
 async def response_with_score(response: schemas.ResponseWithAnswers):
     factors = await crud.list_survey_factors(survey_id=response.surveyId)
-    factor_values = {factor.name : 0 for factor in factors}
+    factor_values = {factor.name: 0 for factor in factors}
 
     answers = response.answers
 
@@ -27,7 +28,7 @@ async def response_with_score(response: schemas.ResponseWithAnswers):
         score = 0
 
         if question_type == schemas.QuestionType.MULTIPLE_CHOICE:
-            if question.correctOption.id == answer.optionId:
+            if question.correctOption == answer.optionId:
                 score = full_score
 
         if question_type in [
@@ -40,7 +41,7 @@ async def response_with_score(response: schemas.ResponseWithAnswers):
                 full_score=full_score,
             )
 
-        if question_type == schemas.QuestionType.PSYCOLOGY:
+        if question_type == schemas.QuestionType.PSYCHOLOGY:
             user_option = await crud.get_option(answer.optionId)
             factor_impacts = user_option.factorImpacts
 

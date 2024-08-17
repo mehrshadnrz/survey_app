@@ -6,8 +6,6 @@ from app.dependencies import (
     verify_author,
     verify_question,
     verify_survey,
-    verify_public_survey,
-    verify_public_question,
 )
 
 router = APIRouter()
@@ -82,6 +80,7 @@ async def list_question(
     return questions
 
 
+# TODO: bugged, change to work with order
 @router.put(
     "/{survey_id}/update_question/{question_id}",
     response_model=schemas.QuestionResponse,
@@ -101,38 +100,6 @@ async def update_question(
 async def delete_question(question=Depends(verify_question)):
     deleted_question = await crud.delete_question(question.id)
     return deleted_question
-
-
-@router.get("/public/", response_model=List[schemas.SurveyResponse])
-async def list_public_surveys(current_user: dict = Depends(get_current_user)):
-    surveys = await crud.list_public_surveys()
-    return surveys
-
-
-@router.get("/public/{survey_id}", response_model=schemas.SurveyResponse)
-async def get_public_survey(
-    survey: dict = Depends(verify_public_survey),
-    currnet_user: dict = Depends(get_current_user)
-):
-    return survey
-
-
-@router.get(
-    "/{survey_id}/public/get_question/{question_id}", response_model=schemas.QuestionResponse
-)
-async def get_public_question(question=Depends(verify_public_question)):
-    return question
-
-
-@router.get(
-    "/{survey_id}/public/list_questions/", response_model=List[schemas.QuestionResponse]
-)
-async def list_public_question(
-    survey: dict =Depends(verify_public_survey),
-    currnet_user: dict = Depends(get_current_user),
-):
-    questions = await crud.list_survey_questions(survey.id)
-    return questions
 
 
 @router.post("/{survey_id}/factor/", response_model=schemas.FactorResponse)

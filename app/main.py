@@ -4,7 +4,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app import crud, dependencies
-from app.routers import user, survey, response
+from app.routers import user, survey, response, exam
 
 
 app = FastAPI()
@@ -36,6 +36,7 @@ async def get_image(filename: str, current_user: dict = Depends(dependencies.get
 app.include_router(user.router, prefix="/users", tags=["users"])
 app.include_router(survey.router, prefix="/surveys", tags=["surveys"])
 app.include_router(response.router, prefix="/responses", tags=["responses"])
+app.include_router(exam.router, prefix="/exams", tags=["Exams"])
 
 origins = [
     "http://localhost",

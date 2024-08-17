@@ -6,7 +6,7 @@
 */
 -- AlterEnum
 BEGIN;
-CREATE TYPE "QuestionType_new" AS ENUM ('MULTIPLE_CHOICE', 'SHORT_TEXT', 'LONG_TEXT', 'PSYCOLOGY');
+CREATE TYPE "QuestionType_new" AS ENUM ('MULTIPLE_CHOICE', 'SHORT_TEXT', 'LONG_TEXT', 'PSYCHOLOGY');
 ALTER TABLE "Question" ALTER COLUMN "questionType" TYPE "QuestionType_new" USING ("questionType"::text::"QuestionType_new");
 ALTER TYPE "QuestionType" RENAME TO "QuestionType_old";
 ALTER TYPE "QuestionType_new" RENAME TO "QuestionType";

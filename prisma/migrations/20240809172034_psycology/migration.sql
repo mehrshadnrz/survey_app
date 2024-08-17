@@ -1,2 +1,2 @@
 -- AlterEnum
-ALTER TYPE "QuestionType" ADD VALUE 'PSYCOLOGY';
+ALTER TYPE "QuestionType" ADD VALUE 'PSYCHOLOGY';

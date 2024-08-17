@@ -17,37 +17,36 @@ enum QuestionType {
   MULTIPLE_CHOICE
   SHORT_TEXT
   LONG_TEXT
-  PSYCOLOGY
+  PSYCHOLOGY
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  username      String   @unique
-  email         String   @unique
+  id            Int       @id @default(autoincrement())
+  username      String    @unique
+  email         String    @unique
   password      String
   first_name    String
   last_name     String
-  phone_number  String   @unique
-  identity_code String   @unique
-  role     Role     @default(USER)
-  surveys  Survey[] @relation("UserSurveys")
-  responses Response[]
+  phone_number  String    @unique
+  identity_code String    @unique
+  role          Role      @default(USER)
+  surveys       Survey[]  @relation("UserSurveys")
+  responses     Response[]
+  authoredExams Exam[]    @relation("UserExams")
 }
 
 model Survey {
-  id           Int       @id @default(autoincrement())
-  title        String
-  description  String
-  creationDate DateTime  @default(now())
-  start_time   DateTime?
-  end_time     DateTime?
-  isPublic     Boolean   @default(false)
-  viewableByAuthorOnly Boolean  @default(false)
-  authorId     Int
-  author       User      @relation(fields: [authorId], references: [id], name: "UserSurveys")
-  questions    Question[]
-  responses    Response[]
-  factors      Factor[]
+  id                    Int            @id @default(autoincrement())
+  title                 String
+  description           String
+  creationDate          DateTime       @default(now())
+  viewableByAuthorOnly  Boolean        @default(false)
+  authorId              Int
+  author                User           @relation(fields: [authorId], references: [id], name: "UserSurveys")
+  questions             Question[]
+  responses             Response[]
+  factors               Factor[]
+  examSurveys           ExamSurvey[]   @relation("SurveyExams")
 }
 
 model Question {
@@ -66,13 +65,13 @@ model Question {
 }
 
 model Option {
-  id         Int      @id @default(autoincrement())
-  questionId Int
-  optionText String
-  image      String?
-  order      Int
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  answers    Answer[]
+  id           Int          @id @default(autoincrement())
+  questionId   Int
+  optionText   String
+  image        String?
+  order        Int
+  question     Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answers      Answer[]
   factorImpacts FactorImpact[]
 }
 
@@ -84,33 +83,66 @@ model Response {
   survey       Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   user         User      @relation(fields: [userId], references: [id])
   answers      Answer[]
+  examSession  ExamSession? @relation(fields: [examSessionId], references: [id], onDelete: Cascade)
+  examSessionId Int?
 }
 
 model Answer {
-  id         Int       @id @default(autoincrement())
-  responseId Int
-  questionId Int
-  optionId   Int?
-  answerText String?
-  response   Response  @relation(fields: [responseId], references: [id])
-  question   Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  option     Option?   @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  id          Int       @id @default(autoincrement())
+  responseId  Int
+  questionId  Int
+  optionId    Int?
+  answerText  String?
+  response    Response  @relation(fields: [responseId], references: [id])
+  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  option      Option?   @relation(fields: [optionId], references: [id], onDelete: Cascade)
 }
 
 model Factor {
-  id         Int       @id @default(autoincrement())
-  name       String
-  surveyId   Int
-  survey     Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  impacts    FactorImpact[]
+  id          Int       @id @default(autoincrement())
+  name        String
+  surveyId    Int
+  survey      Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  impacts     FactorImpact[]
 }
 
 model FactorImpact {
-  id         Int       @id @default(autoincrement())
-  factorId   Int
-  optionId   Int
-  impact     Int
-  plus       Boolean
-  factor     Factor    @relation(fields: [factorId], references: [id], onDelete: Cascade)
-  option     Option    @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  id          Int       @id @default(autoincrement())
+  factorId    Int
+  optionId    Int
+  impact      Int
+  plus        Boolean
+  factor      Factor    @relation(fields: [factorId], references: [id], onDelete: Cascade)
+  option      Option    @relation(fields: [optionId], references: [id], onDelete: Cascade)
+}
+
+model Exam {
+  id                    Int            @id @default(autoincrement())
+  title                 String
+  description           String
+  creationDate          DateTime       @default(now())
+  isPublic              Boolean        @default(false)
+  viewableByAuthorOnly  Boolean        @default(false)
+  authorId              Int
+  author                User           @relation(fields: [authorId], references: [id], name: "UserExams")
+  examSurveys           ExamSurvey[]   @relation("SurveyExams")
+  sessions              ExamSession[]
+}
+
+model ExamSurvey {
+  id        Int    @id @default(autoincrement())
+  examId    Int
+  surveyId  Int
+  order     Int
+  exam      Exam   @relation(fields: [examId], references: [id], onDelete: Cascade, name: "SurveyExams")
+  survey    Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade, name: "SurveyExams")
+}
+
+model ExamSession {
+  id        Int       @id @default(autoincrement())
+  examId    Int
+  startTime DateTime
+  endTime   DateTime?
+  exam      Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  responses Response[]
 }

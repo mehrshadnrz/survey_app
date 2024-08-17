@@ -51,23 +51,6 @@ async def verify_survey(
     return survey
 
 
-async def verify_public_survey(
-    survey_id: int,
-):
-    survey = await crud.get_survey_by_id(survey_id)
-    if not survey:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Survey not found",
-        )
-    if survey.isPublic is not True:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Survey not found",
-        )
-    return survey
-
-
 async def verify_author(
     survey: dict = Depends(verify_survey),
     current_user: dict = Depends(get_current_user),
@@ -81,26 +64,9 @@ async def verify_author(
 
 
 async def verify_question(
-        question_id: int,
-        survey: dict = Depends(verify_survey),
-        current_user: dict = Depends(verify_author)
-):
-    question = await crud.get_question_by_id(question_id)
-    if not question:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Question not found"
-        )
-    if question.surveyId != survey.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
-        )
-    return question
-
-
-async def verify_public_question(
-        question_id: int,
-        survey: dict = Depends(verify_public_survey),
-        current_user: dict = Depends(get_current_user)
+    question_id: int,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
 ):
     question = await crud.get_question_by_id(question_id)
     if not question:
@@ -158,3 +124,45 @@ async def check_user_access_to_response(
             detail="Access denied",
         )
     return response
+
+
+async def verify_exam(
+    exam_id: int,
+    current_user: dict = Depends(get_current_user),
+):
+    exam = await crud.get_exam_by_id(exam_id)
+    if not exam:
+        raise HTTPException(status_code=404, detail="Exam not found")
+    return exam
+
+
+async def verify_exam_author(
+    exam: dict = Depends(verify_exam),
+    current_user: dict = Depends(get_current_user),
+):
+    if exam.authorId != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied",
+        )
+    return current_user
+
+
+async def verify_exam_survey(
+    exam_survey_id: int,
+    current_user: dict = Depends(get_current_user),
+):
+    exam_survey = await crud.get_exam_survey_by_id(exam_survey_id)
+    if not exam_survey:
+        raise HTTPException(status_code=404, detail="ExamSurvey not found")
+    return exam_survey
+
+
+async def verify_exam_session(
+    exam_session_id: int,
+    current_user: dict = Depends(get_current_user),
+):
+    exam_session = await crud.get_exam_session_by_id(exam_session_id)
+    if not exam_session:
+        raise HTTPException(status_code=404, detail="ExamSession not found")
+    return exam_session
