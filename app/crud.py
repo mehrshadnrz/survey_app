@@ -365,8 +365,6 @@ async def get_exam_survey_by_id(exam_survey_id: int):
 
 
 async def get_exam_survey_by_exam_and_survey(exam_id: int, survey_id: int):
-    print(survey_id)
-    print(exam_id)
     return await prisma.examsurvey.find_first(
         where={"examId": exam_id, "surveyId": survey_id}
     )
