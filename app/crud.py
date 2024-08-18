@@ -17,7 +17,7 @@ from app.schemas import (
     ExamSessionCreate,
     ExamSessionUpdate,
     ExamSurveyCreate,
-    ExamSurveyUpdate
+    ExamSurveyUpdate,
 )
 
 
@@ -118,6 +118,7 @@ async def update_survey(survey_id: int, survey: SurveyUpdate):
 async def delete_survey(survey_id: int):
     return await prisma.survey.delete(where={"id": survey_id})
 
+
 """
 Factor
 """
@@ -210,7 +211,7 @@ async def update_question(question_id: int, question: QuestionUpdate):
         where={"id": question_id}, data=question_data
     )
 
-    if question.questionType in ["SHORT_TEXT", "LONG_TEXT"]:
+    if updated_question.questionType in ["SHORT_TEXT", "LONG_TEXT"]:
         return updated_question
 
     updated_options = []
@@ -267,19 +268,20 @@ Response
 """
 
 
-async def create_response(survey_id, user_id: int):
-    response_data = {"surveyId": survey_id, "userId": user_id}
+async def create_response(session_id: int, user_id: int):
+    response_data = {"examSessionId": session_id, "userId": user_id}
     return await prisma.response.create(data=response_data)
 
 
-async def get_response_by_survey_and_user(survey_id: int, user_id: int):
+async def get_response_by_session_and_user(session_id: int, user_id: int):
     return await prisma.response.find_first(
-        where={"surveyId": survey_id, "userId": user_id}, include={"answers": True}
+        where={"examSessionId": session_id, "userId": user_id},
+        include={"answers": True},
     )
 
 
-async def list_responses_for_survey(survey_id: int):
-    return await prisma.response.find_many(where={"surveyId": survey_id})
+async def list_responses_for_exam_session(session_id: int):
+    return await prisma.response.find_many(where={"examSessionId": session_id})
 
 
 """
@@ -335,7 +337,9 @@ ExamSurvey
 """
 
 
-async def create_exam_survey(exam_survey: ExamSurveyCreate, exam_id: int, survey_id: int):
+async def create_exam_survey(
+    exam_survey: ExamSurveyCreate, exam_id: int, survey_id: int
+):
     exam_survey_data = exam_survey.dict()
     exam_survey_data["examId"] = exam_id
     exam_survey_data["surveyId"] = survey_id
@@ -352,7 +356,9 @@ async def list_exam_surveys(exam_id: int):
 
 async def update_exam_survey(exam_survey_id: int, exam_survey: ExamSurveyUpdate):
     update_data = exam_survey.dict(exclude_unset=True)
-    return await prisma.examsurvey.update(where={"id": exam_survey_id}, data=update_data)
+    return await prisma.examsurvey.update(
+        where={"id": exam_survey_id}, data=update_data
+    )
 
 
 async def delete_exam_survey(exam_survey_id: int):
@@ -380,8 +386,20 @@ async def list_exam_sessions(exam_id: int):
 
 async def update_exam_session(exam_session_id: int, exam_session: ExamSessionUpdate):
     update_data = exam_session.dict(exclude_unset=True)
-    return await prisma.examsession.update(where={"id": exam_session_id}, data=update_data)
+    return await prisma.examsession.update(
+        where={"id": exam_session_id}, data=update_data
+    )
 
 
 async def delete_exam_session(exam_session_id: int):
     return await prisma.examsession.delete(where={"id": exam_session_id})
+
+
+async def list_public_exam_sessions():
+    exam_sessions = await prisma.examsession.find_many(
+        where={"exam": {"isPublic": True}},
+        include={
+            "exam": True
+        },
+    )
+    return exam_sessions

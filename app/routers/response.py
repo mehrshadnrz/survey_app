@@ -5,47 +5,49 @@ from app.dependencies import (
     get_current_user,
     check_existing_response,
     check_user_access_to_response,
-    verify_author,
-    verify_survey,
-    verify_response
+    verify_response,
+    verify_exam_session,
+    verify_exam_author_by_session,
 )
 
 router = APIRouter()
 
 
-@router.post("/{survey_id}", response_model=schemas.ResponseResponse)
+@router.post("/{exam_session_id}", response_model=schemas.ResponseResponse)
 async def create_response(
     current_user: dict = Depends(get_current_user),
-    survey: dict = Depends(verify_survey),
+    exam_session: dict = Depends(verify_exam_session),
     response: dict = Depends(check_existing_response),
 ):
-    created_response = await crud.create_response(survey.id, current_user.id)
+    created_response = await crud.create_response(exam_session.id, current_user.id)
     return created_response
 
 
-@router.post("/private/{survey_id}", response_model=schemas.ResponseResponse)
+@router.post("/private/{exam_session_id}", response_model=schemas.ResponseResponse)
 async def create_private_response(
     response: schemas.PrivateResponseCreate,
-    current_user: dict = Depends(verify_author),
-    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_exam_author_by_session),
+    exam_session: dict = Depends(verify_exam_session),
     check_response: dict = Depends(check_existing_response),
 ):
-    created_response = await crud.create_response(survey.id, response.userId)
+    created_response = await crud.create_response(exam_session.id, response.userId)
     return created_response
 
 
-@router.get("/{survey_id}", response_model=schemas.ResponseWithAnswers)
+@router.get("/{exam_session_id}", response_model=schemas.ResponseWithAnswers)
 async def get_response(response=Depends(check_user_access_to_response)):
     return response
 
 
-@router.get("/{survey_id}/user/{user_id}", response_model=schemas.ResponseWithAnswers)
+@router.get(
+    "/{exam_session_id}/user/{user_id}", response_model=schemas.ResponseWithAnswers
+)
 async def get_user_response(
     user_id: int,
-    current_user: dict = Depends(verify_author),
-    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_exam_author_by_session),
+    exam_session: dict = Depends(verify_exam_session),
 ):
-    response = await crud.get_response_by_survey_and_user(survey.id, user_id)
+    response = await crud.get_response_by_session_and_user(exam_session.id, user_id)
     if not response:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -54,20 +56,18 @@ async def get_user_response(
     return response
 
 
-@router.get("/survey/{survey_id}", response_model=List[schemas.ResponseResponse])
+@router.get("/exam/{exam_session_id}", response_model=List[schemas.ResponseResponse])
 async def list_responses(
-    current_user: dict = Depends(verify_author), 
-    survey: dict = Depends(verify_survey)
+    current_user: dict = Depends(verify_exam_author_by_session),
+    exam_session: dict = Depends(verify_exam_session),
 ):
-    responses = await crud.list_responses_for_survey(survey.id)
+    responses = await crud.list_responses_for_exam_session(exam_session.id)
     return responses
 
 
-@router.post("/{survey_id}/add_answer", response_model=schemas.AnswerResponse)
+@router.post("/{exam_session_id}/add_answer", response_model=schemas.AnswerResponse)
 async def create_answer(
-    survey_id: int,
     answer: schemas.AnswerCreate,
-    current_user: dict = Depends(get_current_user), # check if needed
     response: dict = Depends(verify_response),
 ):
     answer_data = answer.dict()
@@ -81,23 +81,24 @@ async def create_answer(
     return created_answer
 
 
-@router.get("/{survey_id}/answers", response_model=List[schemas.AnswerResponse])
+@router.get("/{exam_session_id}/answers", response_model=List[schemas.AnswerResponse])
 async def list_answers(
-    survey_id: int,
-    current_user: dict = Depends(get_current_user),
     response: dict = Depends(verify_response),
 ):
     answers = await crud.list_answers_for_response(response.id)
     return answers
 
 
-@router.get("/score/{survey_id}/user/{user_id}", response_model=schemas.ResponseWithScore)
+@router.get(
+    "/score/{exam_session_id}/user/{user_id}",
+    response_model=schemas.ResponseWithScore,
+)
 async def get_user_response_with_score(
     user_id: int,
-    current_user: dict = Depends(verify_author),
-    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_exam_author_by_session),
+    exam_session: dict = Depends(verify_exam_session),
 ):
-    response = await crud.get_response_by_survey_and_user(survey.id, user_id)
+    response = await crud.get_response_by_session_and_user(exam_session.id, user_id)
     if not response:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

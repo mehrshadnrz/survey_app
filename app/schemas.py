@@ -60,7 +60,6 @@ Survey
 """
 
 
-# TODO: isActive, duration
 class SurveyBase(BaseModel):
     title: str
     description: str
@@ -191,7 +190,7 @@ class QuestionType(str, Enum):
 class QuestionBase(BaseModel):
     questionText: str
     correctAnswer: Optional[str] = None
-    correctOption: Optional[int] = None
+    correctOption: Optional[int] = None  # based on order, not optionId
     image: Optional[str] = None
     order: int
     point: Optional[float] = None
@@ -204,6 +203,9 @@ class QuestionCreate(QuestionBase):
 
 class QuestionUpdate(QuestionBase):
     options: Optional[List[OptionUpdate]] = None
+    questionText: Optional[str] = None
+    order: Optional[int] = None
+    questionType: Optional[QuestionType] = None
 
 
 class QuestionResponse(QuestionBase):
@@ -268,7 +270,7 @@ class PrivateResponseCreate(ResponseBase):
 
 class ResponseResponse(ResponseBase):
     id: int
-    surveyId: int
+    examSessionId: int
     userId: int
     responseDate: datetime
 
@@ -278,7 +280,7 @@ class ResponseResponse(ResponseBase):
 
 class ResponseWithAnswers(ResponseBase):
     id: int
-    surveyId: int
+    examSessionId: int
     userId: int
     responseDate: datetime
     answers: List[AnswerResponse]
@@ -289,12 +291,12 @@ class ResponseWithAnswers(ResponseBase):
 
 class ResponseWithScore(ResponseBase):
     id: int
-    surveyId: int
+    examSessionId: int
     userId: int
     responseDate: datetime
     answers: List[AnswerResponseWithScore]
     totalScore: Optional[float] = None
-    factorValues: Optional[List[FactorValue]]
+    factorValues: Optional[List[FactorValue]] = None
 
     class Config:
         orm_mode: True
@@ -309,6 +311,7 @@ class ExamBase(BaseModel):
     title: str
     description: str
     isPublic: bool = True
+    isActive: bool = True
     viewableByAuthorOnly: bool = False
 
 
@@ -320,6 +323,7 @@ class ExamUpdate(ExamBase):
     title: Optional[str] = None
     description: Optional[str] = None
     isPublic: Optional[bool] = None
+    isActive: Optional[bool] = None
     viewableByAuthorOnly: Optional[bool] = None
 
 
@@ -365,6 +369,7 @@ ExamSession
 class ExamSessionBase(BaseModel):
     startTime: datetime
     endTime: Optional[datetime]
+    duration: Optional[int] = None  # in minutes
 
 
 class ExamSessionCreate(ExamSessionBase):
@@ -374,11 +379,20 @@ class ExamSessionCreate(ExamSessionBase):
 class ExamSessionUpdate(ExamSessionBase):
     startTime: Optional[datetime] = None
     endTime: Optional[datetime] = None
+    duration: Optional[int] = None
 
 
 class ExamSessionResponse(ExamSessionBase):
     id: int
     examId: int
+
+    class Config:
+        orm_mode: True
+
+
+class ExamSessionResponseWithExam(ExamSessionBase):
+    id: int
+    exam: ExamResponse
 
     class Config:
         orm_mode: True

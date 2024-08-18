@@ -44,7 +44,6 @@ model Survey {
   authorId              Int
   author                User           @relation(fields: [authorId], references: [id], name: "UserSurveys")
   questions             Question[]
-  responses             Response[]
   factors               Factor[]
   examSurveys           ExamSurvey[]   @relation("SurveyExams")
 }
@@ -76,15 +75,13 @@ model Option {
 }
 
 model Response {
-  id           Int       @id @default(autoincrement())
-  surveyId     Int
-  userId       Int
-  responseDate DateTime  @default(now())
-  survey       Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  user         User      @relation(fields: [userId], references: [id])
-  answers      Answer[]
-  examSession  ExamSession? @relation(fields: [examSessionId], references: [id], onDelete: Cascade)
-  examSessionId Int?
+  id            Int          @id @default(autoincrement())
+  responseDate  DateTime     @default(now())
+  userId        Int
+  user          User         @relation(fields: [userId], references: [id])
+  examSessionId Int
+  examSession   ExamSession? @relation(fields: [examSessionId], references: [id], onDelete: Cascade)
+  answers       Answer[]
 }
 
 model Answer {
@@ -122,6 +119,7 @@ model Exam {
   description           String
   creationDate          DateTime       @default(now())
   isPublic              Boolean        @default(false)
+  isActive              Boolean        @default(false)
   viewableByAuthorOnly  Boolean        @default(false)
   authorId              Int
   author                User           @relation(fields: [authorId], references: [id], name: "UserExams")
@@ -143,6 +141,7 @@ model ExamSession {
   examId    Int
   startTime DateTime
   endTime   DateTime?
+  duration  Int?
   exam      Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
   responses Response[]
 }
