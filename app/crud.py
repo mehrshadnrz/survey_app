@@ -106,6 +106,13 @@ async def get_survey_by_id(survey_id: int):
     return await prisma.survey.find_unique(where={"id": survey_id})
 
 
+async def get_survey_with_questions(survey_id: int):
+    return await prisma.survey.find_unique(
+        where={"id": survey_id},
+        include={"questions": True},
+    )
+
+
 async def list_user_surveys(user_id: int):
     return await prisma.survey.find_many(where={"authorId": user_id})
 
@@ -319,6 +326,13 @@ async def get_exam_by_id(exam_id: int):
     return await prisma.exam.find_unique(where={"id": exam_id})
 
 
+async def get_exam_with_surveys(exam_id: int):
+    return await prisma.exam.find_unique(
+        where={"id": exam_id},
+        include={"examSurveys": True},
+    )
+
+
 async def list_user_exams(user_id: int):
     return await prisma.exam.find_many(where={"authorId": user_id})
 
@@ -348,6 +362,14 @@ async def create_exam_survey(
 
 async def get_exam_survey_by_id(exam_survey_id: int):
     return await prisma.examsurvey.find_unique(where={"id": exam_survey_id})
+
+
+async def get_exam_survey_by_exam_and_survey(exam_id: int, survey_id: int):
+    print(survey_id)
+    print(exam_id)
+    return await prisma.examsurvey.find_first(
+        where={"examId": exam_id, "surveyId": survey_id}
+    )
 
 
 async def list_exam_surveys(exam_id: int):
@@ -399,7 +421,11 @@ async def list_public_exam_sessions():
     exam_sessions = await prisma.examsession.find_many(
         where={"exam": {"isPublic": True}},
         include={
-            "exam": True
+            "exam": {
+                "include": {
+                    "examSurveys": True,
+                }
+            }
         },
     )
     return exam_sessions

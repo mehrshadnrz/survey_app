@@ -11,6 +11,8 @@ from app.dependencies import (
     verify_exam_session,
     verify_author,
     check_user_access,
+    verify_session_survey,
+    verify_session_question,
 )
 
 
@@ -179,7 +181,7 @@ async def get_public_exam_session(
     exam_session: dict = Depends(verify_exam_session),
     current_user: dict = Depends(get_current_user),
 ):
-    exam = await crud.get_exam_by_id(exam_session.examId)
+    exam = await crud.get_exam_with_surveys(exam_session.examId)
     exam_session_dict = exam_session.dict()
     exam_session_dict["exam"] = exam
     return exam_session_dict
@@ -201,7 +203,23 @@ async def get_private_exam_session(
     exam_session: dict = Depends(verify_exam_session),
     current_user: dict = Depends(check_user_access),
 ):
-    exam = await crud.get_exam_by_id(exam_session.examId)
+    exam = await crud.get_exam_with_surveys(exam_session.examId)
     exam_session_dict = exam_session.dict()
     exam_session_dict["exam"] = exam
     return exam_session_dict
+
+
+@router.get(
+    "/session/{exam_session_id}/get_survey/{survey_id}",
+    response_model=schemas.SurveyListQuestions,
+)
+async def get_survey(survey: dict = Depends(verify_session_survey)):
+    return survey
+
+
+@router.get(
+    "/session/{exam_session_id}/get_question/{question_id}",
+    response_model=schemas.QuestionResponse,
+)
+async def get_question(question=Depends(verify_session_question)):
+    return question

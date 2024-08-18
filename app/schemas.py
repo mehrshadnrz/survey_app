@@ -63,7 +63,6 @@ Survey
 class SurveyBase(BaseModel):
     title: str
     description: str
-    viewableByAuthorOnly: Optional[bool] = False
 
 
 class SurveyCreate(SurveyBase):
@@ -73,7 +72,6 @@ class SurveyCreate(SurveyBase):
 class SurveyUpdate(SurveyBase):
     title: Optional[str] = None
     description: Optional[str] = None
-    viewableByAuthorOnly: Optional[bool] = None
 
 
 class SurveyResponse(SurveyBase):
@@ -217,6 +215,24 @@ class QuestionResponse(QuestionBase):
         orm_mode: True
 
 
+class QuestionResponseAbstract(BaseModel):
+    id: int
+    order: int
+
+    class Config:
+        orm_mode: True
+
+
+class SurveyListQuestions(SurveyBase):
+    id: int
+    creationDate: datetime
+    authorId: int
+    questions: List[QuestionResponseAbstract]
+
+    class Config:
+        orm_mode: True
+
+
 """
 Answer
 """
@@ -303,6 +319,32 @@ class ResponseWithScore(ResponseBase):
 
 
 """
+ExamSurvey
+"""
+
+
+class ExamSurveyBase(BaseModel):
+    order: int
+
+
+class ExamSurveyCreate(ExamSurveyBase):
+    pass
+
+
+class ExamSurveyUpdate(ExamSurveyBase):
+    order: Optional[int] = None
+
+
+class ExamSurveyResponse(ExamSurveyBase):
+    id: int
+    examId: int
+    surveyId: int
+
+    class Config:
+        orm_mode: True
+
+
+"""
 Exam
 """
 
@@ -335,27 +377,10 @@ class ExamResponse(ExamBase):
         orm_mode: True
 
 
-"""
-ExamSurvey
-"""
-
-
-class ExamSurveyBase(BaseModel):
-    order: int
-
-
-class ExamSurveyCreate(ExamSurveyBase):
-    pass
-
-
-class ExamSurveyUpdate(ExamSurveyBase):
-    order: Optional[int] = None
-
-
-class ExamSurveyResponse(ExamSurveyBase):
+class ExamResponseWithSurveys(ExamBase):
     id: int
-    examId: int
-    surveyId: int
+    authorId: int
+    examSurveys: List[ExamSurveyResponse]
 
     class Config:
         orm_mode: True
@@ -392,7 +417,7 @@ class ExamSessionResponse(ExamSessionBase):
 
 class ExamSessionResponseWithExam(ExamSessionBase):
     id: int
-    exam: ExamResponse
+    exam: ExamResponseWithSurveys
 
     class Config:
         orm_mode: True
