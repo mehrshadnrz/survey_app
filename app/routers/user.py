@@ -57,3 +57,14 @@ async def list_admins(current_user: dict = Depends(dependencies.get_current_supe
 @router.get("/", response_model=List[schemas.UserResponse])
 async def list_users(current_user: dict = Depends(dependencies.get_current_admin_user)):
     return await crud.list_users()
+
+
+# TEMP
+@router.post("/superadmin", response_model=schemas.TokenResponse)
+async def register_super_admin(user: schemas.UserCreate):
+    db_user = await crud.get_user_by_email(user.email)
+    if db_user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+    created_user = await crud.create_superadmin(user)
+    access_token = auth.create_access_token(data={"sub": created_user.email})
+    return {"message": "Register successful", "access_token": access_token, "token_type": "bearer", "role": created_user.role}

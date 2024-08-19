@@ -44,6 +44,22 @@ async def create_user(user: UserCreate):
     return await prisma.user.create(data=user_data)
 
 
+# TEMP
+async def create_superadmin(user: UserCreate):
+    hashed_password = get_password_hash(user.password)
+    user_data = {
+        "username": user.username,
+        "email": user.email,
+        "password": hashed_password,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "phone_number": user.phone_number,
+        "identity_code": user.identity_code,
+        "role": Role.SUPER_ADMIN.value,
+    }
+    return await prisma.user.create(data=user_data)
+
+
 async def get_user_by_email(email: str):
     return await prisma.user.find_unique(where={"email": email})
 
