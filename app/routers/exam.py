@@ -210,6 +210,23 @@ async def get_private_exam_session(
 
 
 @router.get(
+    "/session/",
+    response_model=list[schemas.ExamSessionResponse],
+)
+async def list_user_exam_sessions(
+    current_user: dict = Depends(get_current_user),
+):
+    responses = await crud.list_user_responses(current_user.id)
+    
+    sessions = []
+    for response in responses:
+        session = await crud.get_exam_session_by_id(response.examSessionId)
+        sessions.append(session)
+    
+    return sessions
+
+
+@router.get(
     "/session/{exam_session_id}/get_survey/{survey_id}",
     response_model=schemas.SurveyListQuestions,
 )

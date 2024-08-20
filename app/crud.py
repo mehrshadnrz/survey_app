@@ -303,6 +303,10 @@ async def get_response_by_session_and_user(session_id: int, user_id: int):
     )
 
 
+async def list_user_responses(user_id: int):
+    return await prisma.response.find_many(where={"userId": user_id})
+
+
 async def list_responses_for_exam_session(session_id: int):
     return await prisma.response.find_many(where={"examSessionId": session_id})
 
