@@ -39,8 +39,7 @@ app.include_router(response.router, prefix="/responses", tags=["responses"])
 app.include_router(exam.router, prefix="/exams", tags=["Exams"])
 
 origins = [
-    "http://localhost",
-    "http://localhost:8000",
+    "*",
 ]
 
 app.add_middleware(
