@@ -125,7 +125,13 @@ async def get_survey_by_id(survey_id: int):
 async def get_survey_with_questions(survey_id: int):
     return await prisma.survey.find_unique(
         where={"id": survey_id},
-        include={"questions": True},
+        include={
+            "questions": {
+                "include": {
+                    "options": True
+                }
+            }
+        }
     )
 
 

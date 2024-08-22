@@ -11,8 +11,6 @@ from app.dependencies import (
     verify_exam_session,
     verify_author,
     check_user_access,
-    verify_session_survey,
-    verify_session_question,
 )
 
 
@@ -217,12 +215,12 @@ async def list_user_sessions(
     current_user: dict = Depends(get_current_user),
 ):
     responses = await crud.list_user_responses(current_user.id)
-    
+
     sessions = []
     for response in responses:
         session = await crud.get_exam_session_by_id(response.examSessionId)
         sessions.append(session)
-    
+
     return sessions
 
 
@@ -234,26 +232,28 @@ async def list_sessions(
     current_user: dict = Depends(get_current_admin_user),
 ):
     exams = await crud.list_user_exams(current_user.id)
-    
+
     sessions_list = []
     for exam in exams:
         sessions = await crud.list_exam_sessions(exam_id=exam.id)
         sessions_list.extend(sessions)
-    
+
     return sessions_list
 
 
 @router.get(
-    "/session/{exam_session_id}/get_survey/{survey_id}",
-    response_model=schemas.SurveyListQuestions,
+    "/session/{exam_session_id}/list_questions/",
+    response_model=List[schemas.QuestionResponse],
 )
-async def get_survey(survey: dict = Depends(verify_session_survey)):
-    return survey
+async def get_question(
+    exam_session: dict = Depends(verify_exam_session),
+    current_user: dict = Depends(check_user_access),
+):
+    exam = await crud.get_exam_with_surveys(exam_id=exam_session.examId)
 
+    questions = []
+    for exam_survey in exam.examSurveys:
+        survey = await crud.get_survey_with_questions(survey_id=exam_survey.surveyId)
+        questions.extend(survey.questions)
 
-@router.get(
-    "/session/{exam_session_id}/get_question/{question_id}",
-    response_model=schemas.QuestionResponse,
-)
-async def get_question(question=Depends(verify_session_question)):
-    return question
+    return questions
