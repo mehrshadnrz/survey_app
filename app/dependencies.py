@@ -159,6 +159,14 @@ async def verify_response(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Response not found",
         )
+    return response
+
+
+async def viewable_response(
+    current_user: dict = Depends(get_current_user),
+    response: dict = Depends(verify_response),
+    exam_session: dict = Depends(verify_exam_session),
+):
     exam = await crud.get_exam_by_id(exam_id=exam_session.examId)
     if exam.viewableByAuthorOnly and exam.authorId != current_user.id:
         raise HTTPException(

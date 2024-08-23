@@ -6,6 +6,7 @@ from app.dependencies import (
     check_existing_response,
     check_user_access_to_response,
     verify_response,
+    viewable_response,
     verify_exam_session,
     verify_exam_author_by_session,
 )
@@ -83,7 +84,7 @@ async def create_answer(
 
 @router.get("/{exam_session_id}/answers", response_model=List[schemas.AnswerResponse])
 async def list_answers(
-    response: dict = Depends(verify_response),
+    response: dict = Depends(viewable_response),
 ):
     answers = await crud.list_answers_for_response(response.id)
     return answers
