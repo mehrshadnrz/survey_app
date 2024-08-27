@@ -133,7 +133,7 @@ class FactorImpactCreate(FactorImpactBase):
 
 
 class FactorImpactUpdate(FactorImpactBase):
-    id: int
+    id: Optional[int] = None
 
 
 class FactorImpactResponse(FactorImpactBase):
@@ -160,7 +160,9 @@ class OptionCreate(OptionBase):
 
 
 class OptionUpdate(OptionBase):
-    id: int
+    id: Optional[int] = None
+    optionText: Optional[str] = None
+    order: Optional[int] = None
     factorImpacts: Optional[List[FactorImpactUpdate]] = None
 
 
@@ -324,6 +326,7 @@ ExamSurvey
 
 
 class ExamSurveyBase(BaseModel):
+    surveyId : int
     order: int
 
 
@@ -332,13 +335,14 @@ class ExamSurveyCreate(ExamSurveyBase):
 
 
 class ExamSurveyUpdate(ExamSurveyBase):
+    id : Optional[int] = None
+    surveyId : Optional[int] = None
     order: Optional[int] = None
 
 
 class ExamSurveyResponse(ExamSurveyBase):
     id: int
     examId: int
-    surveyId: int
 
     class Config:
         orm_mode: True
@@ -358,7 +362,7 @@ class ExamBase(BaseModel):
 
 
 class ExamCreate(ExamBase):
-    pass
+    examSurveys: List[ExamSurveyCreate]
 
 
 class ExamUpdate(ExamBase):
@@ -367,11 +371,12 @@ class ExamUpdate(ExamBase):
     isPublic: Optional[bool] = None
     isActive: Optional[bool] = None
     viewableByAuthorOnly: Optional[bool] = None
-
+    examSurveys: Optional[List[ExamSurveyUpdate]] = None
 
 class ExamResponse(ExamBase):
     id: int
     authorId: int
+    examSurveys: List[ExamSurveyResponse]
 
     class Config:
         orm_mode: True
@@ -395,6 +400,7 @@ class ExamSessionBase(BaseModel):
     startTime: datetime
     endTime: Optional[datetime]
     duration: Optional[int] = None  # in minutes
+    timerOnQuestion: Optional[bool] = False
 
 
 class ExamSessionCreate(ExamSessionBase):

@@ -80,6 +80,43 @@ async def verify_question(
     return question
 
 
+async def verify_option(
+    option_id: int,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    option = await crud.get_option(option_id)
+    if not option:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Option not found"
+        )
+    question = await crud.get_question_by_id(option.questionId)
+    if question.surveyId != survey.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+        )
+    return option
+
+
+async def verify_impact(
+    factor_impact_id: int,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    impact = await crud.get_factor_impact(factor_impact_id)
+    if not impact:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="FactorImpact not found"
+        )
+    option = await crud.get_option(impact.optionId)
+    question = await crud.get_question_by_id(option.questionId)
+    if question.surveyId != survey.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+        )
+    return impact
+
+
 async def verify_exam(
     exam_id: int,
 ):

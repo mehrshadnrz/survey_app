@@ -136,11 +136,12 @@ model ExamSurvey {
 }
 
 model ExamSession {
-  id        Int       @id @default(autoincrement())
-  examId    Int
-  startTime DateTime
-  endTime   DateTime?
-  duration  Int?
-  exam      Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
-  responses Response[]
+  id               Int       @id @default(autoincrement())
+  examId           Int
+  startTime        DateTime
+  endTime          DateTime?
+  duration         Int?
+  timerOnQuestion  Boolean
+  exam             Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  responses        Response[]
 }

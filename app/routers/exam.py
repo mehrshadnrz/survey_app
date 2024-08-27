@@ -6,15 +6,18 @@ from app.dependencies import (
     get_current_user,
     verify_exam_author,
     verify_exam,
-    verify_survey,
     verify_exam_survey,
     verify_exam_session,
-    verify_author,
     check_user_access,
 )
 
 
 router = APIRouter()
+
+
+"""
+Exam
+"""
 
 
 @router.post("/", response_model=schemas.ExamResponse)
@@ -61,16 +64,9 @@ async def delete_exam(
     return deleted_exam
 
 
-@router.post("/{exam_id}/survey/{survey_id}", response_model=schemas.ExamSurveyResponse)
-async def create_exam_survey(
-    exam_survey: schemas.ExamSurveyCreate,
-    current_exam_author: dict = Depends(verify_exam_author),
-    current_survey_author: dict = Depends(verify_author),
-    exam: dict = Depends(verify_exam),
-    survey: dict = Depends(verify_survey),
-):
-    created_exam_survey = await crud.create_exam_survey(exam_survey, exam.id, survey.id)
-    return created_exam_survey
+"""
+ExamSurvey
+"""
 
 
 @router.get(
@@ -92,20 +88,6 @@ async def list_exam_surveys(
     return exam_surveys
 
 
-@router.put(
-    "/{exam_id}/survey/{exam_survey_id}", response_model=schemas.ExamSurveyResponse
-)
-async def update_exam_survey(
-    exam_survey: schemas.ExamSurveyUpdate,
-    existing_exam_survey: dict = Depends(verify_exam_survey),
-    current_user: dict = Depends(verify_exam_author),
-):
-    updated_exam_survey = await crud.update_exam_survey(
-        existing_exam_survey.id, exam_survey
-    )
-    return updated_exam_survey
-
-
 @router.delete(
     "/{exam_id}/survey/{exam_survey_id}", response_model=schemas.ExamSurveyResponse
 )
@@ -115,6 +97,11 @@ async def delete_exam_survey(
 ):
     deleted_exam_survey = await crud.delete_exam_survey(existing_exam_survey.id)
     return deleted_exam_survey
+
+
+"""
+ExamSession
+"""
 
 
 @router.post("/{exam_id}/session/", response_model=schemas.ExamSessionResponse)

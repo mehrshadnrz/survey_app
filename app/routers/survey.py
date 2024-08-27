@@ -6,6 +6,8 @@ from app.dependencies import (
     verify_author,
     verify_question,
     verify_survey,
+    verify_option,
+    verify_impact,
 )
 
 router = APIRouter()
@@ -101,6 +103,24 @@ async def update_question(
 async def delete_question(question=Depends(verify_question)):
     deleted_question = await crud.delete_question(question.id)
     return deleted_question
+
+
+@router.delete(
+    "/{survey_id}/delete_option/{option_id}",
+    response_model=schemas.OptionResponse,
+)
+async def delete_option(option=Depends(verify_option)):
+    deleted_option = await crud.delete_option(option.id)
+    return deleted_option
+
+
+@router.delete(
+    "/{survey_id}/delete_factor_impact/{factor_impact_id}",
+    response_model=schemas.FactorImpactResponse,
+)
+async def delete_factor_impact(impact=Depends(verify_impact)):
+    deleted_impact = await crud.delete_factor_impact(impact.id)
+    return deleted_impact
 
 
 @router.post("/{survey_id}/factor/", response_model=schemas.FactorResponse)
