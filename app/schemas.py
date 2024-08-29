@@ -376,7 +376,7 @@ class ExamUpdate(ExamBase):
 class ExamResponse(ExamBase):
     id: int
     authorId: int
-    examSurveys: List[ExamSurveyResponse]
+    examSurveys: Optional[List[ExamSurveyResponse]]
 
     class Config:
         orm_mode: True

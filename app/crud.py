@@ -127,14 +127,7 @@ async def get_survey_by_id(survey_id: int):
 
 async def get_survey_with_questions(survey_id: int):
     return await prisma.survey.find_unique(
-        where={"id": survey_id},
-        include={
-            "questions": {
-                "include": {
-                    "options": True
-                }
-            }
-        }
+        where={"id": survey_id}, include={"questions": {"include": {"options": True}}}
     )
 
 
@@ -193,14 +186,18 @@ async def create_question(survey_id: int, question: QuestionCreate) -> QuestionR
         if question.questionType in ["SHORT_TEXT", "LONG_TEXT"]:
             return created_question
 
-        created_options = await create_options_for_question(transaction, created_question.id, question)
-        
+        created_options = await create_options_for_question(
+            transaction, created_question.id, question
+        )
+
         created_question_dict = created_question.dict()
         created_question_dict["options"] = created_options
         return created_question_dict
 
 
-async def create_options_for_question(transaction, question_id: int, question: QuestionCreate) -> List[dict]:
+async def create_options_for_question(
+    transaction, question_id: int, question: QuestionCreate
+) -> List[dict]:
     created_options = []
     for option in question.options:
         option_data = option.dict(exclude={"factorImpacts"})
@@ -209,22 +206,26 @@ async def create_options_for_question(transaction, question_id: int, question: Q
         created_option_dict = created_option.dict()
 
         if question.questionType == QuestionType.PSYCHOLOGY:
-            created_impacts = await create_factor_impacts_for_option(transaction, created_option.id, option)
+            created_impacts = await create_factor_impacts_for_option(
+                transaction, created_option.id, option
+            )
             created_option_dict["factorImpacts"] = created_impacts
 
         created_options.append(created_option_dict)
-    
+
     return created_options
 
 
-async def create_factor_impacts_for_option(transaction, option_id: int, option: OptionCreate) -> List[dict]:
+async def create_factor_impacts_for_option(
+    transaction, option_id: int, option: OptionCreate
+) -> List[dict]:
     created_impacts = []
     for impact in option.factorImpacts:
         impact_data = impact.dict(exclude={"factorImpacts", "id"})
         impact_data["optionId"] = option_id
         created_impact = await transaction.factorimpact.create(data=impact_data)
         created_impacts.append(created_impact.dict())
-    
+
     return created_impacts
 
 
@@ -273,7 +274,9 @@ async def update_question(question_id: int, question: QuestionUpdate):
         )
 
 
-async def update_options_for_question(transaction, question_id: int, question: QuestionUpdate) -> List[dict]:
+async def update_options_for_question(
+    transaction, question_id: int, question: QuestionUpdate
+) -> List[dict]:
     updated_options = []
     for option in question.options:
         if option.id:
@@ -286,7 +289,9 @@ async def update_options_for_question(transaction, question_id: int, question: Q
             updated_option_dict = updated_option.dict()
 
             if question.questionType == QuestionType.PSYCHOLOGY:
-                updated_impacts = await update_factor_impacts_for_option(transaction, updated_option.id, option)
+                updated_impacts = await update_factor_impacts_for_option(
+                    transaction, updated_option.id, option
+                )
                 updated_option_dict["factorImpacts"] = updated_impacts
 
             updated_options.append(updated_option_dict)
@@ -297,7 +302,9 @@ async def update_options_for_question(transaction, question_id: int, question: Q
             created_option_dict = created_option.dict()
 
             if question.questionType == QuestionType.PSYCHOLOGY:
-                created_impacts = await create_factor_impacts_for_option(transaction, created_option.id, option)
+                created_impacts = await create_factor_impacts_for_option(
+                    transaction, created_option.id, option
+                )
                 created_option_dict["factorImpacts"] = created_impacts
 
             updated_options.append(created_option_dict)
@@ -305,7 +312,9 @@ async def update_options_for_question(transaction, question_id: int, question: Q
     return updated_options
 
 
-async def update_factor_impacts_for_option(transaction, option_id: int, option: OptionUpdate) -> List[dict]:
+async def update_factor_impacts_for_option(
+    transaction, option_id: int, option: OptionUpdate
+) -> List[dict]:
     updated_impacts = []
     for impact in option.factorImpacts:
         if impact.id:
@@ -411,18 +420,21 @@ Exam
 
 
 async def create_exam(exam: ExamCreate, user_id: int):
-    async with prisma.transaction() as tx:
+    async with prisma.tx() as transaction:
         exam_data = exam.dict(exclude={"examSurveys"})
         exam_data["authorId"] = user_id
-        
-        created_exam = await tx.exam.create(data=exam_data)
-        
+
+        created_exam = await transaction.exam.create(data=exam_data)
+
         for survey in exam.examSurveys:
             survey_data = survey.dict()
             survey_data["examId"] = created_exam.id
-            await tx.examsurvey.create(data=survey_data)
+            await transaction.examsurvey.create(data=survey_data)
 
-        return created_exam
+        return await transaction.exam.find_unique(
+            where={"id": created_exam.id},
+            include={"examSurveys": True},
+        )
 
 
 async def get_exam_by_id(exam_id: int):
@@ -441,21 +453,28 @@ async def list_user_exams(user_id: int):
 
 
 async def update_exam(exam_id: int, exam: ExamUpdate):
-    async with prisma.transaction() as tx:
+    async with prisma.tx() as transaction:
         update_data = exam.dict(exclude_unset=True, exclude={"examSurveys"})
-        
-        updated_exam = await tx.exam.update(where={"id": exam_id}, data=update_data)
+
+        updated_exam = await transaction.exam.update(
+            where={"id": exam_id}, data=update_data
+        )
 
         if exam.examSurveys:
             for survey in exam.examSurveys:
                 if survey.id:
-                    await tx.examsurvey.update(where={"id": survey.id}, data=survey.dict(exclude_unset=True))
+                    await transaction.examsurvey.update(
+                        where={"id": survey.id}, data=survey.dict(exclude_unset=True)
+                    )
                 else:
                     survey_data = survey.dict()
                     survey_data["examId"] = updated_exam.id
-                    await tx.examsurvey.create(data=survey_data)
-        
-        return updated_exam
+                    await transaction.examsurvey.create(data=survey_data)
+
+        return await transaction.exam.find_unique(
+            where={"id": updated_exam.id},
+            include={"examSurveys": True},
+        )
 
 
 async def delete_exam(exam_id: int):
