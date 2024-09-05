@@ -115,7 +115,7 @@ async def create_exam_session(
 
 
 @router.get(
-    "/{exam_id}/session/{exam_session_id}", response_model=schemas.ExamSessionResponse
+    "/{exam_id}/session/{exam_session_id}", response_model=schemas.ExamSessionResponseWithExam
 )
 async def get_exam_session(
     exam_session: dict = Depends(verify_exam_session),
@@ -124,7 +124,7 @@ async def get_exam_session(
     return exam_session
 
 
-@router.get("/{exam_id}/session/", response_model=List[schemas.ExamSessionResponse])
+@router.get("/{exam_id}/session/", response_model=List[schemas.ExamSessionResponseWithExam])
 async def list_exam_sessions(
     exam: dict = Depends(verify_exam),
     current_user: dict = Depends(verify_exam_author),
@@ -196,7 +196,7 @@ async def get_private_exam_session(
 
 @router.get(
     "/session/user/",
-    response_model=list[schemas.ExamSessionResponse],
+    response_model=list[schemas.ExamSessionResponseWithExam],
 )
 async def list_user_sessions(
     current_user: dict = Depends(get_current_user),
@@ -213,7 +213,7 @@ async def list_user_sessions(
 
 @router.get(
     "/session/",
-    response_model=list[schemas.ExamSessionResponse],
+    response_model=list[schemas.ExamSessionResponseWithExam],
 )
 async def list_sessions(
     current_user: dict = Depends(get_current_admin_user),

@@ -438,7 +438,10 @@ async def create_exam(exam: ExamCreate, user_id: int):
 
 
 async def get_exam_by_id(exam_id: int):
-    return await prisma.exam.find_unique(where={"id": exam_id})
+    return await prisma.exam.find_unique(
+        where={"id": exam_id},
+        include={"examSurveys": True},
+    )
 
 
 async def get_exam_with_surveys(exam_id: int):
@@ -449,7 +452,10 @@ async def get_exam_with_surveys(exam_id: int):
 
 
 async def list_user_exams(user_id: int):
-    return await prisma.exam.find_many(where={"authorId": user_id})
+    return await prisma.exam.find_many(
+        where={"authorId": user_id},
+        include={"examSurveys": True},
+    )
 
 
 async def update_exam(exam_id: int, exam: ExamUpdate):
@@ -532,11 +538,17 @@ async def create_exam_session(exam_session: ExamSessionCreate, exam_id: int):
 
 
 async def get_exam_session_by_id(exam_session_id: int):
-    return await prisma.examsession.find_unique(where={"id": exam_session_id})
+    return await prisma.examsession.find_unique(
+        where={"id": exam_session_id},
+        include={"exam": True},
+    )
 
 
 async def list_exam_sessions(exam_id: int):
-    return await prisma.examsession.find_many(where={"examId": exam_id})
+    return await prisma.examsession.find_many(
+        where={"examId": exam_id},
+        include={"exam": True},
+    )
 
 
 async def update_exam_session(exam_session_id: int, exam_session: ExamSessionUpdate):
