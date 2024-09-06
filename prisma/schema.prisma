@@ -76,6 +76,7 @@ model Option {
 model Response {
   id            Int          @id @default(autoincrement())
   responseDate  DateTime     @default(now())
+  startTime     DateTime?
   userId        Int
   user          User         @relation(fields: [userId], references: [id])
   examSessionId Int
@@ -84,14 +85,15 @@ model Response {
 }
 
 model Answer {
-  id          Int       @id @default(autoincrement())
-  responseId  Int
-  questionId  Int
-  optionId    Int?
-  answerText  String?
-  response    Response  @relation(fields: [responseId], references: [id])
-  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  option      Option?   @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  id            Int       @id @default(autoincrement())
+  creationDate  DateTime  @default(now())
+  responseId    Int
+  questionId    Int
+  optionId      Int?
+  answerText    String?
+  response      Response  @relation(fields: [responseId], references: [id])
+  question      Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  option        Option?   @relation(fields: [optionId], references: [id], onDelete: Cascade)
 }
 
 model Factor {

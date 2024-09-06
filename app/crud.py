@@ -21,6 +21,7 @@ from app.schemas import (
     ExamSurveyUpdate,
     OptionCreate,
     OptionUpdate,
+    ResponseUpdate
 )
 
 
@@ -379,11 +380,25 @@ async def create_response(session_id: int, user_id: int):
     return await prisma.response.create(data=response_data)
 
 
+async def update_response(response_id: int, response: ResponseUpdate):
+    update_data = response.dict()
+    return await prisma.response.update(
+        where={"id": response_id}, data=update_data
+    )
+
+
 async def get_response_by_session_and_user(session_id: int, user_id: int):
-    return await prisma.response.find_first(
+    response = await prisma.response.find_first(
         where={"examSessionId": session_id, "userId": user_id},
         include={"answers": True},
     )
+    last_answer = await prisma.answer.find_first(
+        where={"responseId": response.id},
+        order={"creationDate": "desc"}
+    )
+    response_dict = response.dict()
+    response_dict['lastAnswer'] = last_answer
+    return response_dict
 
 
 async def list_user_responses(user_id: int):

@@ -29,10 +29,20 @@ async def create_private_response(
     response: schemas.PrivateResponseCreate,
     current_user: dict = Depends(verify_exam_author_by_session),
     exam_session: dict = Depends(verify_exam_session),
-    check_response: dict = Depends(check_existing_response),
 ):
     created_response = await crud.create_response(exam_session.id, response.userId)
     return created_response
+
+
+@router.put("/{exam_session_id}", response_model=schemas.ResponseResponse)
+async def update_response(
+    update_response = schemas.ResponseUpdate,
+    current_user: dict = Depends(get_current_user),
+    exam_session: dict = Depends(verify_exam_session),
+    response: dict = Depends(verify_response),
+):
+    updated_response = await crud.update_response(response.id, update_response)
+    return updated_response
 
 
 @router.get("/{exam_session_id}", response_model=schemas.ResponseWithAnswers)

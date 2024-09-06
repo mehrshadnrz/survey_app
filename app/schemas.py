@@ -250,6 +250,7 @@ class AnswerResponse(BaseModel):
     id: int
     responseId: int
     questionId: int
+    creationDate: datetime
     optionId: Optional[int] = None
     answerText: Optional[str] = None
 
@@ -261,6 +262,7 @@ class AnswerResponseWithScore(BaseModel):
     id: int
     responseId: int
     questionId: int
+    creationDate: datetime
     optionId: Optional[int] = None
     answerText: Optional[str] = None
     score: Optional[float] = None
@@ -286,11 +288,17 @@ class PrivateResponseCreate(ResponseBase):
     userId: int
 
 
+class ResponseUpdate(ResponseBase):
+    startTime: datetime
+
+
 class ResponseResponse(ResponseBase):
     id: int
     examSessionId: int
     userId: int
     responseDate: datetime
+    startTime: Optional[datetime] = None
+    lastAnswer: Optional[AnswerResponse] = None
 
     class Config:
         orm_mode: True
@@ -301,7 +309,9 @@ class ResponseWithAnswers(ResponseBase):
     examSessionId: int
     userId: int
     responseDate: datetime
+    startTime: Optional[datetime] = None
     answers: List[AnswerResponse]
+    lastAnswer: Optional[AnswerResponse] = None
 
     class Config:
         orm_mode: True
@@ -312,9 +322,11 @@ class ResponseWithScore(ResponseBase):
     examSessionId: int
     userId: int
     responseDate: datetime
+    startTime: Optional[datetime] = None
     answers: List[AnswerResponseWithScore]
     totalScore: Optional[float] = None
     factorValues: Optional[List[FactorValue]] = None
+    lastAnswer: Optional[AnswerResponse] = None
 
     class Config:
         orm_mode: True
