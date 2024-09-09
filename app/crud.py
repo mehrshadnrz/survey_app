@@ -449,28 +449,52 @@ async def create_exam(exam: ExamCreate, user_id: int):
 
         return await transaction.exam.find_unique(
             where={"id": created_exam.id},
-            include={"examSurveys": True},
+            include={
+                "examSurveys": {
+                    "include": {
+                        "survey": True,
+                    }
+                }
+            },
         )
 
 
 async def get_exam_by_id(exam_id: int):
     return await prisma.exam.find_unique(
         where={"id": exam_id},
-        include={"examSurveys": True},
+        include={
+            "examSurveys": {
+                "include": {
+                    "survey": True,
+                }
+            }
+        },
     )
 
 
 async def get_exam_with_surveys(exam_id: int):
     return await prisma.exam.find_unique(
         where={"id": exam_id},
-        include={"examSurveys": True},
+        include={
+            "examSurveys": {
+                "include": {
+                    "survey": True,
+                }
+            }
+        },
     )
 
 
 async def list_user_exams(user_id: int):
     return await prisma.exam.find_many(
         where={"authorId": user_id},
-        include={"examSurveys": True},
+        include={
+            "examSurveys": {
+                "include": {
+                    "survey": True,
+                }
+            }
+        },
     )
 
 
@@ -495,7 +519,13 @@ async def update_exam(exam_id: int, exam: ExamUpdate):
 
         return await transaction.exam.find_unique(
             where={"id": updated_exam.id},
-            include={"examSurveys": True},
+            include={
+                "examSurveys": {
+                    "include": {
+                        "survey": True,
+                    }
+                }
+            },
         )
 
 
@@ -514,27 +544,42 @@ async def create_exam_survey(
     exam_survey_data = exam_survey.dict()
     exam_survey_data["examId"] = exam_id
     exam_survey_data["surveyId"] = survey_id
-    return await prisma.examsurvey.create(data=exam_survey_data)
+    created_exam_survey = await prisma.examsurvey.create(data=exam_survey_data)
+    return await prisma.examsurvey.find_unique(
+        where={"id": created_exam_survey.id},
+        include={"survey": True},
+    )
 
 
 async def get_exam_survey_by_id(exam_survey_id: int):
-    return await prisma.examsurvey.find_unique(where={"id": exam_survey_id})
+    return await prisma.examsurvey.find_unique(
+        where={"id": exam_survey_id},
+        include={"survey": True},
+    )
 
 
 async def get_exam_survey_by_exam_and_survey(exam_id: int, survey_id: int):
     return await prisma.examsurvey.find_first(
-        where={"examId": exam_id, "surveyId": survey_id}
+        where={"examId": exam_id, "surveyId": survey_id},
+        include={"survey": True},
     )
 
 
 async def list_exam_surveys(exam_id: int):
-    return await prisma.examsurvey.find_many(where={"examId": exam_id})
+    return await prisma.examsurvey.find_many(
+        where={"examId": exam_id},
+        include={"survey": True},
+    )
 
 
 async def update_exam_survey(exam_survey_id: int, exam_survey: ExamSurveyUpdate):
     update_data = exam_survey.dict(exclude_unset=True)
-    return await prisma.examsurvey.update(
+    updated_exam_survey = await prisma.examsurvey.update(
         where={"id": exam_survey_id}, data=update_data
+    )
+    return await prisma.examsurvey.find_unique(
+        where={"id": updated_exam_survey.id},
+        include={"survey": True},
     )
 
 
@@ -559,7 +604,11 @@ async def get_exam_session_by_id(exam_session_id: int):
         include={
             "exam": {
                 "include": {
-                    "examSurveys": True,
+                    "examSurveys": {
+                        "include": {
+                            "survey": True,
+                        }
+                    }
                 }
             }
         },
@@ -569,14 +618,38 @@ async def get_exam_session_by_id(exam_session_id: int):
 async def list_exam_sessions(exam_id: int):
     return await prisma.examsession.find_many(
         where={"examId": exam_id},
-        include={"exam": True},
+        include={
+            "exam": {
+                "include": {
+                    "examSurveys": {
+                        "include": {
+                            "survey": True,
+                        }
+                    }
+                }
+            }
+        },
     )
 
 
 async def update_exam_session(exam_session_id: int, exam_session: ExamSessionUpdate):
     update_data = exam_session.dict(exclude_unset=True)
-    return await prisma.examsession.update(
+    updated_session = prisma.examsession.update(
         where={"id": exam_session_id}, data=update_data
+    )
+    return await prisma.examsession.find_unique(
+        where={"id": updated_session.id},
+        include={
+            "exam": {
+                "include": {
+                    "examSurveys": {
+                        "include": {
+                            "survey": True,
+                        }
+                    }
+                }
+            }
+        },
     )
 
 
@@ -590,7 +663,11 @@ async def list_public_exam_sessions():
         include={
             "exam": {
                 "include": {
-                    "examSurveys": True,
+                    "examSurveys": {
+                        "include": {
+                            "survey": True,
+                        }
+                    }
                 }
             }
         },

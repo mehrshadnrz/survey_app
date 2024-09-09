@@ -340,7 +340,7 @@ ExamSurvey
 
 
 class ExamSurveyBase(BaseModel):
-    surveyId : int
+    surveyId: int
     order: int
 
 
@@ -349,14 +349,15 @@ class ExamSurveyCreate(ExamSurveyBase):
 
 
 class ExamSurveyUpdate(ExamSurveyBase):
-    id : Optional[int] = None
-    surveyId : Optional[int] = None
+    id: Optional[int] = None
+    surveyId: Optional[int] = None
     order: Optional[int] = None
 
 
 class ExamSurveyResponse(ExamSurveyBase):
     id: int
     examId: int
+    survey: Optional[SurveyResponse] = None
 
     class Config:
         orm_mode: True
@@ -387,16 +388,8 @@ class ExamUpdate(ExamBase):
     viewableByAuthorOnly: Optional[bool] = None
     examSurveys: Optional[List[ExamSurveyUpdate]] = None
 
+
 class ExamResponse(ExamBase):
-    id: int
-    authorId: int
-    examSurveys: Optional[List[ExamSurveyResponse]]
-
-    class Config:
-        orm_mode: True
-
-
-class ExamResponseWithSurveys(ExamBase):
     id: int
     authorId: int
     examSurveys: Optional[List[ExamSurveyResponse]] = None
@@ -430,14 +423,7 @@ class ExamSessionUpdate(ExamSessionBase):
 class ExamSessionResponse(ExamSessionBase):
     id: int
     examId: int
-
-    class Config:
-        orm_mode: True
-
-
-class ExamSessionResponseWithExam(ExamSessionBase):
-    id: int
-    exam: ExamResponseWithSurveys
+    exam: Optional[ExamResponse] = None
 
     class Config:
         orm_mode: True

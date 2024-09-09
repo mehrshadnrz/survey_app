@@ -115,7 +115,8 @@ async def create_exam_session(
 
 
 @router.get(
-    "/{exam_id}/session/{exam_session_id}", response_model=schemas.ExamSessionResponseWithExam
+    "/{exam_id}/session/{exam_session_id}",
+    response_model=schemas.ExamSessionResponse,
 )
 async def get_exam_session(
     exam_session: dict = Depends(verify_exam_session),
@@ -124,7 +125,7 @@ async def get_exam_session(
     return exam_session
 
 
-@router.get("/{exam_id}/session/", response_model=List[schemas.ExamSessionResponseWithExam])
+@router.get("/{exam_id}/session/", response_model=List[schemas.ExamSessionResponse])
 async def list_exam_sessions(
     exam: dict = Depends(verify_exam),
     current_user: dict = Depends(verify_exam_author),
@@ -160,7 +161,7 @@ async def delete_exam_session(
 
 @router.get(
     "/public/{exam_session_id}",
-    response_model=schemas.ExamSessionResponseWithExam,
+    response_model=schemas.ExamSessionResponse,
 )
 async def get_public_exam_session(
     exam_session: dict = Depends(verify_exam_session),
@@ -172,7 +173,7 @@ async def get_public_exam_session(
     return exam_session_dict
 
 
-@router.get("/public/", response_model=List[schemas.ExamSessionResponseWithExam])
+@router.get("/public/", response_model=List[schemas.ExamSessionResponse])
 async def list_public_exam_sessions(
     current_user: dict = Depends(get_current_user),
 ):
@@ -182,7 +183,7 @@ async def list_public_exam_sessions(
 
 @router.get(
     "/private/{exam_session_id}",
-    response_model=schemas.ExamSessionResponseWithExam,
+    response_model=schemas.ExamSessionResponse,
 )
 async def get_private_exam_session(
     exam_session: dict = Depends(verify_exam_session),
@@ -196,7 +197,7 @@ async def get_private_exam_session(
 
 @router.get(
     "/session/user/",
-    response_model=list[schemas.ExamSessionResponseWithExam],
+    response_model=list[schemas.ExamSessionResponse],
 )
 async def list_user_sessions(
     current_user: dict = Depends(get_current_user),
@@ -213,7 +214,7 @@ async def list_user_sessions(
 
 @router.get(
     "/session/",
-    response_model=list[schemas.ExamSessionResponseWithExam],
+    response_model=list[schemas.ExamSessionResponse],
 )
 async def list_sessions(
     current_user: dict = Depends(get_current_admin_user),
