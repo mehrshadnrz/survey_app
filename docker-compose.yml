@@ -10,6 +10,7 @@ services:
       - DATABASE_URL=postgresql://survey_user:survey_user@db:5432/surveydb
     ports:
       - "8000:8000"
+      - "5555:5555"
     volumes:
       - .:/app
     depends_on:

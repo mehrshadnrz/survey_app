@@ -18,6 +18,8 @@ enum QuestionType {
   SHORT_TEXT
   LONG_TEXT
   PSYCHOLOGY
+  OPENING
+  ENDING
 }
 
 model User {

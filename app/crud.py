@@ -21,7 +21,7 @@ from app.schemas import (
     ExamSurveyUpdate,
     OptionCreate,
     OptionUpdate,
-    ResponseUpdate
+    ResponseUpdate,
 )
 
 
@@ -375,16 +375,18 @@ Response
 """
 
 
-async def create_response(session_id: int, user_id: int):
-    response_data = {"examSessionId": session_id, "userId": user_id}
+async def create_response(session_id: int, user_id: int, startTime=None):
+    response_data = {
+        "examSessionId": session_id,
+        "userId": user_id,
+        "startTime": startTime,
+    }
     return await prisma.response.create(data=response_data)
 
 
 async def update_response(response_id: int, response: ResponseUpdate):
     update_data = response.dict()
-    return await prisma.response.update(
-        where={"id": response_id}, data=update_data
-    )
+    return await prisma.response.update(where={"id": response_id}, data=update_data)
 
 
 async def get_response_by_session_and_user(session_id: int, user_id: int):
@@ -393,11 +395,10 @@ async def get_response_by_session_and_user(session_id: int, user_id: int):
         include={"answers": True},
     )
     last_answer = await prisma.answer.find_first(
-        where={"responseId": response.id},
-        order={"creationDate": "desc"}
+        where={"responseId": response.id}, order={"creationDate": "desc"}
     )
     response_dict = response.dict()
-    response_dict['lastAnswer'] = last_answer
+    response_dict["lastAnswer"] = last_answer
     return response_dict
 
 
@@ -555,7 +556,13 @@ async def create_exam_session(exam_session: ExamSessionCreate, exam_id: int):
 async def get_exam_session_by_id(exam_session_id: int):
     return await prisma.examsession.find_unique(
         where={"id": exam_session_id},
-        include={"exam": True},
+        include={
+            "exam": {
+                "include": {
+                    "examSurveys": True,
+                }
+            }
+        },
     )
 
 

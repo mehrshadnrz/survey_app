@@ -185,6 +185,8 @@ class QuestionType(str, Enum):
     SHORT_TEXT = "SHORT_TEXT"
     LONG_TEXT = "LONG_TEXT"
     PSYCHOLOGY = "PSYCHOLOGY"
+    OPENING = "OPENING"
+    ENDING = "ENDING"
 
 
 class QuestionBase(BaseModel):
@@ -281,7 +283,7 @@ class ResponseBase(BaseModel):
 
 
 class ResponseCreate(ResponseBase):
-    pass
+    startTime: Optional[datetime] = None
 
 
 class PrivateResponseCreate(ResponseBase):
@@ -289,7 +291,7 @@ class PrivateResponseCreate(ResponseBase):
 
 
 class ResponseUpdate(ResponseBase):
-    startTime: datetime
+    startTime: Optional[datetime] = None
 
 
 class ResponseResponse(ResponseBase):
@@ -397,7 +399,7 @@ class ExamResponse(ExamBase):
 class ExamResponseWithSurveys(ExamBase):
     id: int
     authorId: int
-    examSurveys: List[ExamSurveyResponse]
+    examSurveys: Optional[List[ExamSurveyResponse]] = None
 
     class Config:
         orm_mode: True
