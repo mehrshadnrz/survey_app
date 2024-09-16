@@ -174,7 +174,9 @@ async def check_existing_response(
     exam_session: dict = Depends(verify_exam_session),
 ):
     existing_response = await crud.get_response_by_session_and_user(
-        exam_session.id, current_user.id
+        session_id=exam_session.id,
+        user_id=current_user.id,
+        check=True,
     )
     if existing_response:
         raise HTTPException(
