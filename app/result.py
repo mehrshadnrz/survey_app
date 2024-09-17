@@ -12,6 +12,7 @@ async def calculate_text_score(
 
 
 async def response_with_score(response: schemas.ResponseWithAnswers):
+    response = schemas.ResponseWithAnswers(**response)
     answers_with_score = []
     total_score = 0
     survey_factor_values = {}
