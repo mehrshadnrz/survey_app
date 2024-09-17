@@ -46,7 +46,7 @@ async def update_response(
     exam_session: dict = Depends(verify_exam_session),
     response: dict = Depends(verify_response),
 ):
-    updated_response = await crud.update_response(response.id, update_response)
+    updated_response = await crud.update_response(response["id"], update_response)
     return updated_response
 
 
@@ -87,7 +87,7 @@ async def create_answer(
     response: dict = Depends(verify_response),
 ):
     answer_data = answer.dict()
-    existed_answer = await crud.get_answer(response.id, answer_data["questionId"])
+    existed_answer = await crud.get_answer(response["id"], answer_data["questionId"])
     if existed_answer:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -101,7 +101,7 @@ async def create_answer(
 async def list_answers(
     response: dict = Depends(viewable_response),
 ):
-    answers = await crud.list_answers_for_response(response.id)
+    answers = await crud.list_answers_for_response(response["id"])
     return answers
 
 
