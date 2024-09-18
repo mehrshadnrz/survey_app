@@ -191,7 +191,8 @@ async def verify_response(
     current_user: dict = Depends(get_current_user),
 ):
     response = await crud.get_response_by_session_and_user(
-        exam_session.id, current_user.id
+        exam_session.id,
+        current_user.id,
     )
     if not response:
         raise HTTPException(

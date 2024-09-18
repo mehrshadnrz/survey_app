@@ -402,7 +402,7 @@ async def get_response_by_session_and_user(session_id: int, user_id: int, check:
         where={"responseId": response.id}, order={"creationDate": "desc"}
     )
     response_dict = response.dict()
-    response_dict["lastAnswer"] = last_answer
+    response_dict["lastAnswer"] = last_answer.dict()
     return response_dict
 
 
