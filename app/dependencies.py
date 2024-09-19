@@ -176,7 +176,6 @@ async def check_existing_response(
     existing_response = await crud.get_response_by_session_and_user(
         session_id=exam_session.id,
         user_id=current_user.id,
-        check=True,
     )
     if existing_response:
         raise HTTPException(

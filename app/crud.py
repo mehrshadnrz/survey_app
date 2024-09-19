@@ -389,20 +389,22 @@ async def update_response(response_id: int, response: ResponseUpdate):
     return await prisma.response.update(where={"id": response_id}, data=update_data)
 
 
-async def get_response_by_session_and_user(session_id: int, user_id: int, check: bool = False):
+async def get_response_by_session_and_user(session_id: int, user_id: int):
     response = await prisma.response.find_first(
         where={"examSessionId": session_id, "userId": user_id},
         include={"answers": True},
     )
     
-    if check:
+    if not response:
         return response
 
     last_answer = await prisma.answer.find_first(
         where={"responseId": response.id}, order={"creationDate": "desc"}
     )
+    if last_answer:
+        last_answer = last_answer.dict()
     response_dict = response.dict()
-    response_dict["lastAnswer"] = last_answer.dict()
+    response_dict["lastAnswer"] = last_answer
     return response_dict
 
 
