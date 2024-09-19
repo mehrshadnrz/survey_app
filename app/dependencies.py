@@ -233,11 +233,12 @@ async def check_user_access(
     exam_session: dict = Depends(verify_exam_session),
     current_user: dict = Depends(get_current_user),
 ):
+    exam = await crud.get_exam_by_id(exam_id=exam_session.examId)
     response = await crud.get_response_by_session_and_user(
         exam_session.id,
         current_user.id,
     )
-    if not response:
+    if not response and exam.authorId != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied",
