@@ -414,7 +414,7 @@ async def update_response(response_id: int, response: ResponseUpdate):
 async def get_response_by_session_and_user(session_id: int, user_id: int):
     response = await prisma.response.find_first(
         where={"examSessionId": session_id, "userId": user_id},
-        include={"answers": True},
+        include={"answers": True, "factorValues": True},
     )
 
     if not response:

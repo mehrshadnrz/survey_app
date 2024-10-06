@@ -337,6 +337,7 @@ class ResponseWithAnswers(ResponseBase):
     totalScore: Optional[float] = None
     startTime: Optional[datetime] = None
     answers: List[AnswerResponse]
+    factorValues: Optional[List[AnswerResponse]] = None
     lastAnswer: Optional[AnswerResponse] = None
 
     class Config:
