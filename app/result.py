@@ -1,83 +1,74 @@
 from app import schemas, crud
 
 
-async def calculate_text_score(
-    correct_text: str,
-    user_answer: str,
-    full_score: float,
-) -> float:
-    # Placeholder function for text score calculation
-    # Implement the actual logic here
-    return full_score if correct_text==user_answer else 0
-
-
-async def response_with_score(response: schemas.ResponseWithAnswers):
+async def save_answer_scores_in_db(response: schemas.ResponseWithAnswers):
     response = schemas.ResponseWithAnswers(**response)
-    answers_with_score = []
-    total_score = 0
-    survey_factor_values = {}
+
+    surveys = []
 
     for answer in response.answers:
         question = await crud.get_question_by_id(question_id=answer.questionId)
+
         survey_id = question.surveyId
 
-        if survey_id not in survey_factor_values:
+        if survey_id not in surveys:
             factors = await crud.list_survey_factors(survey_id=survey_id)
-            survey_factor_values[survey_id] = {factor.id: {"name": factor.name, "value": 0} for factor in factors}
 
-        factors = survey_factor_values[survey_id]
-        question_type = question.questionType
-        full_score = question.point
+            for factor in factors:
+                
+                existing_factor_value = await crud.get_factor_value_by_factor_and_response(
+                    factor_id=factor.id,
+                    response_id=response.id
+                )
 
-        score = 0
+                if not existing_factor_value:
+                    factor_value = schemas.FactorValueCreate(
+                        factorId=factor.id,
+                        responseId=response.id,
+                    )
+                    await crud.create_factor_value(factor_value=factor_value)
 
-        if question_type == schemas.QuestionType.MULTIPLE_CHOICE:
+            surveys.append(survey_id)
+
+        if question.questionType == schemas.QuestionType.MULTIPLE_CHOICE:
+            score = 0
             selected_option = await crud.get_option(option_id=answer.optionId)
             if question.correctOption == selected_option.order:
-                score = full_score
+                score = question.point
+            await crud.save_score(answer_id=answer.id, score=score)
 
-        elif question_type in [
-            schemas.QuestionType.LONG_TEXT,
-            schemas.QuestionType.SHORT_TEXT,
-        ]:
-            score = await calculate_text_score(
-                correct_text=question.correctAnswer,
-                user_answer=answer.answerText,
-                full_score=full_score,
-            )
-
-        elif question_type == schemas.QuestionType.PSYCHOLOGY:
+        elif question.questionType == schemas.QuestionType.PSYCHOLOGY:
             user_option = await crud.get_option(answer.optionId)
             factor_impacts = user_option.factorImpacts
 
             for factor_impact in factor_impacts:
-                factor = await crud.get_factor_by_id(factor_impact.factorId)
-                factor_id = factor.id
+                factor_value = await crud.get_factor_value_by_factor_and_response(
+                    factor_id=factor_impact.factorId,
+                    response_id=response.id,
+                )
 
+                value = factor_value.value
                 if factor_impact.plus:
-                    factors[factor_id]["value"] += factor_impact.impact
+                    value += factor_impact.impact
                 else:
-                    factors[factor_id]["value"] -= factor_impact.impact
+                    value -= factor_impact.impact
 
-        answer_with_score = answer.dict()
-        answer_with_score["score"] = score
-        answers_with_score.append(answer_with_score)
-        total_score += score
+                await crud.update_factor_value(
+                    factor_id=factor_impact.factorId,
+                    response_id=response.id,
+                    value=value,
+                )
 
-    factors_with_value = []
-    for survey_id, factors in survey_factor_values.items():
-        for factor_id, factor_data in factors.items():
-            factor_dict = {
-                "id": factor_id,
-                "surveyId": survey_id,
-                "name": factor_data["name"],
-                "value": factor_data["value"]
-            }
-            factors_with_value.append(factor_dict)
 
-    response_with_score = response.dict()
-    response_with_score["answers"] = answers_with_score
-    response_with_score["totalScore"] = total_score
-    response_with_score["factorValues"] = factors_with_value
+async def save_total_answer_in_db(response: schemas.ResponseWithAnswers):
+    response = schemas.ResponseWithAnswers(**response)
+    total_score = 0
+    for answer in response.answers:
+        if answer.score:
+            total_score += answer.score
 
-    return response_with_score
+    if total_score != 0:
+        await crud.save_total_score(
+            response_id=response.id,
+            total_score=total_score,
+        )

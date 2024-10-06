@@ -145,6 +145,28 @@ class FactorImpactResponse(FactorImpactBase):
 
 
 """
+Factor Value
+"""
+
+
+class FactorValueBase(BaseModel):
+    factorId: int
+    responseId: int
+    value: float = 0
+
+
+class FactorValueCreate(FactorValueBase):
+    pass
+
+
+class FactorValueResponse(FactorValueBase):
+    id: int
+
+    class Config:
+        orm_mode: True    
+
+
+"""
 Option
 """
 
@@ -299,6 +321,7 @@ class ResponseResponse(ResponseBase):
     examSessionId: int
     userId: int
     responseDate: datetime
+    totalScore: Optional[float] = None
     startTime: Optional[datetime] = None
     lastAnswer: Optional[AnswerResponse] = None
 
@@ -311,6 +334,7 @@ class ResponseWithAnswers(ResponseBase):
     examSessionId: int
     userId: int
     responseDate: datetime
+    totalScore: Optional[float] = None
     startTime: Optional[datetime] = None
     answers: List[AnswerResponse]
     lastAnswer: Optional[AnswerResponse] = None

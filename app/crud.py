@@ -22,6 +22,7 @@ from app.schemas import (
     OptionCreate,
     OptionUpdate,
     ResponseUpdate,
+    FactorValueCreate,
 )
 
 
@@ -173,6 +174,27 @@ async def delete_factor(factor_id: int):
     return await prisma.factor.delete(where={"id": factor_id})
 
 
+async def create_factor_value(factor_value: FactorValueCreate):
+    data = factor_value.dict()
+    return await prisma.factorvalue.create(data=data)
+
+
+async def get_factor_value_by_factor_and_response(factor_id: int, response_id: int):
+    return await prisma.factorvalue.find_unique(
+        where={"factorId": factor_id, "responseId": response_id}
+    )
+
+
+async def update_factor_value(factor_id: int, response_id: int, value: float):
+    return await prisma.factorvalue.update(
+        where={
+            "factorId": factor_id,
+            "responseId": response_id,
+        },
+        data={"value": value},
+    )
+
+
 """
 Question
 """
@@ -263,16 +285,16 @@ async def update_question(question_id: int, question: QuestionUpdate):
 
         await update_options_for_question(transaction, updated_question.id, question)
 
-        return await prisma.question.find_unique(
-            where={"id": question_id},
-            include={
-                "options": {
-                    "include": {
-                        "factorImpacts": True,
-                    }
+    return await prisma.question.find_unique(
+        where={"id": question_id},
+        include={
+            "options": {
+                "include": {
+                    "factorImpacts": True,
                 }
-            },
-        )
+            }
+        },
+    )
 
 
 async def update_options_for_question(
@@ -394,7 +416,7 @@ async def get_response_by_session_and_user(session_id: int, user_id: int):
         where={"examSessionId": session_id, "userId": user_id},
         include={"answers": True},
     )
-    
+
     if not response:
         return response
 
@@ -416,6 +438,13 @@ async def list_responses_for_exam_session(session_id: int):
     return await prisma.response.find_many(where={"examSessionId": session_id})
 
 
+async def save_total_score(response_id: int, total_score: float):
+    return await prisma.response.update(
+        where={"id": response_id},
+        data={"totalScore": total_score},
+    )
+
+
 """
 Answer
 """
@@ -433,6 +462,20 @@ async def list_answers_for_response(response_id: int):
 async def get_answer(response_id: int, question_id: int):
     return await prisma.answer.find_first(
         where={"responseId": response_id, "questionId": question_id}
+    )
+
+
+async def get_answer_by_id(answer_id: int):
+    return await prisma.answer.find_unique(
+        where={"id": answer_id},
+        include={"question": True},
+    )
+
+
+async def save_score(answer_id: int, score: float):
+    return await prisma.answer.update(
+        where={"id": answer_id},
+        data={"score": score},
     )
 
 

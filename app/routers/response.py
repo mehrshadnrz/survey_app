@@ -9,6 +9,7 @@ from app.dependencies import (
     viewable_response,
     verify_exam_session,
     verify_exam_author_by_session,
+    get_current_admin_user,
 )
 
 router = APIRouter()
@@ -35,7 +36,9 @@ async def create_private_response(
     current_user: dict = Depends(verify_exam_author_by_session),
     exam_session: dict = Depends(verify_exam_session),
 ):
-    created_response = await crud.create_response(exam_session.id, response.userId, None)
+    created_response = await crud.create_response(
+        exam_session.id, response.userId, None
+    )
     return created_response
 
 
@@ -120,5 +123,27 @@ async def get_user_response_with_score(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Response not found",
         )
-    response_with_score = await result.response_with_score(response)
-    return response_with_score
+    return response
+
+
+@router.post("/add_score/{answer_id}", response_model=schemas.AnswerResponse)
+async def add_answer_score(
+    answer_id: int,
+    score: float,
+    current_user: dict = Depends(get_current_admin_user),
+):
+    answer = await crud.get_answer_by_id(answer_id=answer_id)
+    if answer.question.questionType not in ["SHORT_TEXT", "LONG_TEXT"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Can not add score for this type of question",
+        )
+    if not answer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Answer not found",
+        )
+    return await crud.save_score(
+        answer_id=answer_id,
+        score=score,
+    )

@@ -79,16 +79,19 @@ model Response {
   id            Int          @id @default(autoincrement())
   responseDate  DateTime     @default(now())
   startTime     DateTime?
+  totalScore    Float?
   userId        Int
   user          User         @relation(fields: [userId], references: [id])
   examSessionId Int
   examSession   ExamSession? @relation(fields: [examSessionId], references: [id], onDelete: Cascade)
   answers       Answer[]
+  factorValues  FactorValue[]
 }
 
 model Answer {
   id            Int       @id @default(autoincrement())
   creationDate  DateTime  @default(now())
+  score         Float?
   responseId    Int
   questionId    Int
   optionId      Int?
@@ -104,6 +107,7 @@ model Factor {
   surveyId    Int
   survey      Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   impacts     FactorImpact[]
+  values      FactorValue[]
 }
 
 model FactorImpact {
@@ -114,6 +118,15 @@ model FactorImpact {
   plus        Boolean
   factor      Factor    @relation(fields: [factorId], references: [id], onDelete: Cascade)
   option      Option    @relation(fields: [optionId], references: [id], onDelete: Cascade)
+}
+
+model FactorValue {
+  id          Int       @id @default(autoincrement())
+  factorId    Int
+  responseId  Int
+  value       Int
+  factor      Factor    @relation(fields: [factorId], references: [id], onDelete: Cascade)
+  response    Response  @relation(fields: [responseId], references: [id], onDelete: Cascade)
 }
 
 model Exam {
