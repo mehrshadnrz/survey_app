@@ -108,15 +108,6 @@ class FactorResponse(FactorBase):
         orm_mode: True
 
 
-class FactorValue(FactorBase):
-    id: int
-    surveyId: int
-    value: int = 0
-
-    class Config:
-        orm_mode: True
-
-
 """
 Factor Impact
 """
@@ -352,7 +343,7 @@ class ResponseWithScore(ResponseBase):
     startTime: Optional[datetime] = None
     answers: List[AnswerResponseWithScore]
     totalScore: Optional[float] = None
-    factorValues: Optional[List[FactorValue]] = None
+    factorValues: Optional[List[FactorValueResponse]] = None
     lastAnswer: Optional[AnswerResponse] = None
 
     class Config:

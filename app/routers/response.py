@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
-from app import schemas, crud, result
+from app import schemas, crud
 from app.dependencies import (
     get_current_user,
     check_existing_response,

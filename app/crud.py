@@ -180,17 +180,24 @@ async def create_factor_value(factor_value: FactorValueCreate):
 
 
 async def get_factor_value_by_factor_and_response(factor_id: int, response_id: int):
-    return await prisma.factorvalue.find_unique(
-        where={"factorId": factor_id, "responseId": response_id}
-    )
-
-
-async def update_factor_value(factor_id: int, response_id: int, value: float):
-    return await prisma.factorvalue.update(
+    factor_value = await prisma.factorvalue.find_first(
         where={
             "factorId": factor_id,
             "responseId": response_id,
-        },
+        }
+    )
+    return factor_value
+
+
+async def update_factor_value(factor_id: int, response_id: int, value: float):
+    factor_value = await prisma.factorvalue.find_first(
+        where={
+            "factorId": factor_id,
+            "responseId": response_id,
+        }
+    )
+    return await prisma.factorvalue.update(
+        where={"id": factor_value.id},
         data={"value": value},
     )
 
@@ -435,7 +442,10 @@ async def list_user_responses(user_id: int):
 
 
 async def list_responses_for_exam_session(session_id: int):
-    return await prisma.response.find_many(where={"examSessionId": session_id})
+    return await prisma.response.find_many(
+        where={"examSessionId": session_id},
+        include={"answers": True, "factorValues": True},
+    )
 
 
 async def save_total_score(response_id: int, total_score: float):

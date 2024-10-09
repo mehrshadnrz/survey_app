@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from typing import List
-from app import schemas, crud
+from app import schemas, crud, result
 from app.dependencies import (
     get_current_admin_user,
     get_current_user,
@@ -9,6 +9,7 @@ from app.dependencies import (
     verify_exam_survey,
     verify_exam_session,
     check_user_access,
+    verify_exam_author_by_session,
 )
 
 
@@ -245,3 +246,22 @@ async def get_question(
         questions.extend(survey.questions)
 
     return questions
+
+
+@router.post(
+    "/session/{exam_session_id}/calculate_scores/",
+    response_model=List[schemas.ResponseWithScore],
+)
+async def calculate_scores(
+    exam_session: dict = Depends(verify_exam_session),
+    current_user: dict = Depends(verify_exam_author_by_session),
+):
+    initial_responses = await crud.list_responses_for_exam_session(session_id=exam_session.id)
+    for response in initial_responses:
+        await result.save_answer_scores_in_db(response)
+    for response in initial_responses:
+        await result.save_total_score_in_db(response)
+    
+    responses = await crud.list_responses_for_exam_session(session_id=exam_session.id)
+
+    return responses

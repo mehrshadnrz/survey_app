@@ -2,8 +2,6 @@ from app import schemas, crud
 
 
 async def save_answer_scores_in_db(response: schemas.ResponseWithAnswers):
-    response = schemas.ResponseWithAnswers(**response)
-
     surveys = []
 
     for answer in response.answers:
@@ -15,7 +13,7 @@ async def save_answer_scores_in_db(response: schemas.ResponseWithAnswers):
             factors = await crud.list_survey_factors(survey_id=survey_id)
 
             for factor in factors:
-                
+
                 existing_factor_value = await crud.get_factor_value_by_factor_and_response(
                     factor_id=factor.id,
                     response_id=response.id
@@ -60,8 +58,7 @@ async def save_answer_scores_in_db(response: schemas.ResponseWithAnswers):
                 )
 
 
-async def save_total_answer_in_db(response: schemas.ResponseWithAnswers):
-    response = schemas.ResponseWithAnswers(**response)
+async def save_total_score_in_db(response: schemas.ResponseWithAnswers):
     total_score = 0
     for answer in response.answers:
         if answer.score:
