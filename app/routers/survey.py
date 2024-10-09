@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status, HTTPException
 from typing import List
 from app import schemas, crud
 from app.dependencies import (
@@ -24,8 +24,7 @@ async def create_survey(
 
 @router.get("/{survey_id}", response_model=schemas.SurveyResponse)
 async def get_survey(
-    survey: dict = Depends(verify_survey),
-    current_user: dict = Depends(verify_author)
+    survey: dict = Depends(verify_survey), current_user: dict = Depends(verify_author)
 ):
     return survey
 
@@ -40,8 +39,13 @@ async def list_surveys(current_user: dict = Depends(get_current_admin_user)):
 async def update_survey(
     survey: schemas.SurveyUpdate,
     existing_survey: dict = Depends(verify_survey),
-    currnet_user: dict = Depends(verify_author)
+    currnet_user: dict = Depends(verify_author),
 ):
+    if existing_survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not edit survey after activation",
+        )
     updated_survey = await crud.update_survey(existing_survey.id, survey)
     return updated_survey
 
@@ -49,8 +53,13 @@ async def update_survey(
 @router.delete("/{survey_id}", response_model=schemas.SurveyResponse)
 async def delete_survey(
     existing_survey: dict = Depends(verify_survey),
-    currnet_user: dict = Depends(verify_author)
+    currnet_user: dict = Depends(verify_author),
 ):
+    if existing_survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not delete survey after activation",
+        )
     deleted_survey = await crud.delete_survey(existing_survey.id)
     return deleted_survey
 
@@ -59,7 +68,7 @@ async def delete_survey(
 async def create_question(
     question: schemas.QuestionCreate,
     survey=Depends(verify_survey),
-    currnet_user: dict = Depends(verify_author)
+    currnet_user: dict = Depends(verify_author),
 ):
     new_question = await crud.create_question(survey.id, question)
     return new_question
@@ -89,9 +98,16 @@ async def list_question(
     response_model=schemas.QuestionResponse,
 )
 async def update_question(
+    survey_id: int,
     question: schemas.QuestionUpdate,
     existing_question=Depends(verify_question),
 ):
+    existing_survey = await crud.get_survey_by_id(survey_id)
+    if existing_survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not edit question after activation",
+        )
     updated_question = await crud.update_question(existing_question.id, question)
     return updated_question
 
@@ -100,7 +116,16 @@ async def update_question(
     "/{survey_id}/delete_question/{question_id}",
     response_model=schemas.QuestionResponse,
 )
-async def delete_question(question=Depends(verify_question)):
+async def delete_question(
+    survey_id: int,
+    question=Depends(verify_question),
+):
+    existing_survey = await crud.get_survey_by_id(survey_id)
+    if existing_survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not delete question after activation",
+        )
     deleted_question = await crud.delete_question(question.id)
     return deleted_question
 
@@ -109,7 +134,16 @@ async def delete_question(question=Depends(verify_question)):
     "/{survey_id}/delete_option/{option_id}",
     response_model=schemas.OptionResponse,
 )
-async def delete_option(option=Depends(verify_option)):
+async def delete_option(
+    survey_id: int,
+    option=Depends(verify_option),
+):
+    existing_survey = await crud.get_survey_by_id(survey_id)
+    if existing_survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not delete option after activation",
+        )
     deleted_option = await crud.delete_option(option.id)
     return deleted_option
 
@@ -118,7 +152,16 @@ async def delete_option(option=Depends(verify_option)):
     "/{survey_id}/delete_factor_impact/{factor_impact_id}",
     response_model=schemas.FactorImpactResponse,
 )
-async def delete_factor_impact(impact=Depends(verify_impact)):
+async def delete_factor_impact(
+    survey_id: int,
+    impact=Depends(verify_impact),
+):
+    existing_survey = await crud.get_survey_by_id(survey_id)
+    if existing_survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not delete factor impact after activation",
+        )
     deleted_impact = await crud.delete_factor_impact(impact.id)
     return deleted_impact
 
@@ -159,6 +202,11 @@ async def update_factor(
     survey: dict = Depends(verify_survey),
     current_user: dict = Depends(verify_author),
 ):
+    if survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not update factor after activation",
+        )
     updated_factor = await crud.update_factor(factor_id, factor)
     return updated_factor
 
@@ -169,5 +217,10 @@ async def delete_factor(
     survey: dict = Depends(verify_survey),
     current_user: dict = Depends(verify_author),
 ):
+    if survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not delete factor after activation",
+        )
     factor = await crud.delete_factor(factor_id)
     return factor

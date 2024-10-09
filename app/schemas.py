@@ -72,6 +72,7 @@ class SurveyCreate(SurveyBase):
 class SurveyUpdate(SurveyBase):
     title: Optional[str] = None
     description: Optional[str] = None
+    isActive: Optional[bool] = None
 
 
 class SurveyResponse(SurveyBase):
@@ -388,7 +389,7 @@ class ExamBase(BaseModel):
     title: str
     description: str
     isPublic: bool = True
-    isActive: bool = True
+    isActive: bool = False
     viewableByAuthorOnly: bool = False
 
 

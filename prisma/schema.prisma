@@ -42,6 +42,7 @@ model Survey {
   title                 String
   description           String
   creationDate          DateTime       @default(now())
+  isActive              Boolean        @default(false)
   authorId              Int
   author                User           @relation(fields: [authorId], references: [id], name: "UserSurveys")
   questions             Question[]

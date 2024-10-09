@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from app import schemas, crud, result
 from app.dependencies import (
@@ -52,7 +52,31 @@ async def update_exam(
     existing_exam: dict = Depends(verify_exam),
     current_user: dict = Depends(verify_exam_author),
 ):
+    if existing_exam.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not edit exam after activation",
+        )
     updated_exam = await crud.update_exam(existing_exam.id, exam)
+    return updated_exam
+
+
+@router.post("/{exam_id}/activate/", response_model=schemas.ExamResponse)
+async def activate_exam(
+    existing_exam: dict = Depends(verify_exam),
+    current_user: dict = Depends(verify_exam_author),
+):
+    exam = schemas.ExamUpdate(isActive=True)
+    survey = schemas.SurveyUpdate(isActive=True)
+
+    updated_exam = await crud.update_exam(existing_exam.id, exam)
+
+    for exam_survey in update_exam.examSurveys:
+        await crud.update_survey(
+            survey_id=exam_survey.surveyId,
+            survey=survey,
+        )
+
     return updated_exam
 
 
@@ -61,6 +85,11 @@ async def delete_exam(
     existing_exam: dict = Depends(verify_exam),
     current_user: dict = Depends(verify_exam_author),
 ):
+    if existing_exam.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not delete exam after activation",
+        )
     deleted_exam = await crud.delete_exam(existing_exam.id)
     return deleted_exam
 
@@ -93,9 +122,16 @@ async def list_exam_surveys(
     "/{exam_id}/survey/{exam_survey_id}", response_model=schemas.ExamSurveyResponse
 )
 async def delete_exam_survey(
+    exam_id: int,
     existing_exam_survey: dict = Depends(verify_exam_survey),
     current_user: dict = Depends(verify_exam_author),
 ):
+    exam = await crud.get_exam_by_id(exam_id=exam_id)
+    if exam.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not delete exam's survey after activation",
+        )
     deleted_exam_survey = await crud.delete_exam_survey(existing_exam_survey.id)
     return deleted_exam_survey
 
@@ -256,12 +292,14 @@ async def calculate_scores(
     exam_session: dict = Depends(verify_exam_session),
     current_user: dict = Depends(verify_exam_author_by_session),
 ):
-    initial_responses = await crud.list_responses_for_exam_session(session_id=exam_session.id)
+    initial_responses = await crud.list_responses_for_exam_session(
+        session_id=exam_session.id
+    )
     for response in initial_responses:
         await result.save_answer_scores_in_db(response)
     for response in initial_responses:
         await result.save_total_score_in_db(response)
-    
+
     responses = await crud.list_responses_for_exam_session(session_id=exam_session.id)
 
     return responses
