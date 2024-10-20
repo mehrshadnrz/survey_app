@@ -180,7 +180,7 @@ class ParameterUpdate(ParameterBase):
 
 class ParameterResponse(ParameterBase):
     id: int
-    factors: Optional[FactorResponse] = None
+    factors: Optional[List[FactorResponse]] = None
 
     class Config:
         orm_mode: True

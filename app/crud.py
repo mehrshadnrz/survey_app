@@ -214,7 +214,7 @@ async def create_parameter(parameter: ParameterCreate, survey_id: int):
         data = parameter.dict(exclude={"factors"})
 
         data["surveyId"] = survey_id
-        created_parameter = transaction.parameter.create(data=data)
+        created_parameter = await transaction.parameter.create(data=data)
 
         if parameter.factors:
             for factor in parameter.factors:
@@ -223,10 +223,10 @@ async def create_parameter(parameter: ParameterCreate, survey_id: int):
                 data["parameterId"] = created_parameter.id
                 await transaction.factor.create(data=data)
 
-        return await prisma.parameter.find_unique(
-            where={"id": created_parameter.id},
-            include={"factors": True},
-        )
+    return await prisma.parameter.find_unique(
+        where={"id": created_parameter.id},
+        include={"factors": True},
+    )
 
 
 async def get_parameter_by_id(parameter_id: int):
@@ -237,7 +237,10 @@ async def get_parameter_by_id(parameter_id: int):
 
 
 async def list_survey_parameters(survey_id: int):
-    return await prisma.parameter.find_many(where={"surveyId": survey_id})
+    return await prisma.parameter.find_many(
+        where={"surveyId": survey_id},
+        include={"factors": True},
+    )
 
 
 async def update_parameter(parameter_id: int, parameter: ParameterUpdate):
@@ -262,10 +265,10 @@ async def update_parameter(parameter_id: int, parameter: ParameterUpdate):
                     data["parameterId"] = updated_parameter.id
                     await transaction.factor.create(data=data)
 
-        return await prisma.parameter.find_unique(
-            where={"id": updated_parameter.id},
-            include={"factors": True},
-        )
+    return await prisma.parameter.find_unique(
+        where={"id": updated_parameter.id},
+        include={"factors": True},
+    )
 
 
 async def delete_parameter(parameter_id: int):
