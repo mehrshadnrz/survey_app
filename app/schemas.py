@@ -169,16 +169,16 @@ class ParameterBase(BaseModel):
     name: str
 
 
-class ParameterCreate(FactorBase):
+class ParameterCreate(ParameterBase):
     factors: Optional[List[FactorCreate]] = None
 
 
-class ParameterUpdate(FactorBase):
+class ParameterUpdate(ParameterBase):
     name: Optional[str] = None
     factors: Optional[List[FactorUpdate]] = None
 
 
-class ParameterResponse(FactorBase):
+class ParameterResponse(ParameterBase):
     id: int
     factors: Optional[FactorResponse] = None
 
