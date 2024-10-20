@@ -224,3 +224,66 @@ async def delete_factor(
         )
     factor = await crud.delete_factor(factor_id)
     return factor
+
+
+
+
+
+@router.post("/{survey_id}/parameter/", response_model=schemas.ParameterResponse)
+async def create_parameter(
+    parameter: schemas.ParameterCreate,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    created_parameter = await crud.create_parameter(parameter, survey.id)
+    return created_parameter
+
+
+@router.get("/{survey_id}/parameter/{parameter_id}", response_model=schemas.ParameterResponse)
+async def get_parameter(
+    parameter_id: int,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    parameter = await crud.get_parameter_by_id(parameter_id)
+    return parameter
+
+
+@router.get("/{survey_id}/parameter/", response_model=List[schemas.ParameterResponse])
+async def list_parameter(
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    parameters = await crud.list_survey_parameters(survey.id)
+    return parameters
+
+
+@router.put("/{survey_id}/parameter/{parameter_id}", response_model=schemas.ParameterResponse)
+async def update_parameter(
+    parameter_id: int,
+    parameter: schemas.ParameterUpdate,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    if survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not update parameter after activation",
+        )
+    updated_parameter = await crud.update_parameter(parameter_id, parameter)
+    return updated_parameter
+
+
+@router.delete("/{survey_id}/parameter/{parameter_id}", response_model=schemas.ParameterResponse)
+async def delete_parameter(
+    parameter_id: int,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    if survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not delete parameter after activation",
+        )
+    parameter = await crud.delete_parameter(parameter_id)
+    return parameter

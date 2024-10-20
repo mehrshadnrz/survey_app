@@ -23,6 +23,8 @@ from app.schemas import (
     OptionUpdate,
     ResponseUpdate,
     FactorValueCreate,
+    ParameterCreate,
+    ParameterUpdate,
 )
 
 
@@ -200,6 +202,74 @@ async def update_factor_value(factor_id: int, response_id: int, value: float):
         where={"id": factor_value.id},
         data={"value": value},
     )
+
+
+"""
+Parameter
+"""
+
+
+async def create_parameter(parameter: ParameterCreate, survey_id: int):
+    async with prisma.tx() as transaction:
+        data = parameter.dict(exclude={"factors"})
+
+        data["surveyId"] = survey_id
+        created_parameter = transaction.parameter.create(data=data)
+
+        if parameter.factors:
+            for factor in parameter.factors:
+                data = factor.dict()
+                data["surveyId"] = survey_id
+                data["parameterId"] = created_parameter.id
+                await transaction.factor.create(data=data)
+
+        return await prisma.parameter.find_unique(
+            where={"id": created_parameter.id},
+            include={"factors": True},
+        )
+
+
+async def get_parameter_by_id(parameter_id: int):
+    return await prisma.parameter.find_unique(
+        where={"id": parameter_id},
+        include={"factors": True},
+    )
+
+
+async def list_survey_parameters(survey_id: int):
+    return await prisma.parameter.find_many(where={"surveyId": survey_id})
+
+
+async def update_parameter(parameter_id: int, parameter: ParameterUpdate):
+    async with prisma.tx() as transaction:
+        data = parameter.dict(exclude_unset=True, exclude={"factors"})
+        updated_parameter = await transaction.parameter.update(
+            where={"id": parameter_id},
+            data=data,
+        )
+
+        if parameter.factors:
+            for factor in parameter.factors:
+                if factor.id:
+                    data = factor.dict(exclude_unset=True)
+                    await transaction.factor.update(
+                        where={"id": factor.id},
+                        data=data,
+                    )
+                else:
+                    data = factor.dict(exclude_unset=True)
+                    data["surveyId"] = updated_parameter.surveyId
+                    data["parameterId"] = updated_parameter.id
+                    await transaction.factor.create(data=data)
+
+        return await prisma.parameter.find_unique(
+            where={"id": updated_parameter.id},
+            include={"factors": True},
+        )
+
+
+async def delete_parameter(parameter_id: int):
+    return await prisma.parameter.delete(where={"id": parameter_id})
 
 
 """

@@ -91,6 +91,7 @@ Factor
 
 class FactorBase(BaseModel):
     name: str
+    parameterId: Optional[int] = None   
 
 
 class FactorCreate(FactorBase):
@@ -98,7 +99,8 @@ class FactorCreate(FactorBase):
 
 
 class FactorUpdate(FactorBase):
-    pass
+    id: Optional[int] = None  
+    name: Optional[str] = None  
 
 
 class FactorResponse(FactorBase):
@@ -156,6 +158,32 @@ class FactorValueResponse(FactorValueBase):
 
     class Config:
         orm_mode: True    
+
+
+"""
+Parameter
+"""
+
+
+class ParameterBase(BaseModel):
+    name: str
+
+
+class ParameterCreate(FactorBase):
+    factors = Optional[List[FactorCreate]] = None
+
+
+class ParameterUpdate(FactorBase):
+    name: Optional[str] = None
+    factors = Optional[List[FactorUpdate]] = None
+
+
+class ParameterResponse(FactorBase):
+    id: int
+    factors: Optional[FactorResponse] = None
+
+    class Config:
+        orm_mode: True
 
 
 """

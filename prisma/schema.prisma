@@ -47,6 +47,7 @@ model Survey {
   author                User           @relation(fields: [authorId], references: [id], name: "UserSurveys")
   questions             Question[]
   factors               Factor[]
+  parameters            Parameter[]
   examSurveys           ExamSurvey[]   @relation("SurveyExams")
 }
 
@@ -103,12 +104,14 @@ model Answer {
 }
 
 model Factor {
-  id          Int       @id @default(autoincrement())
-  name        String
-  surveyId    Int
-  survey      Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  impacts     FactorImpact[]
-  values      FactorValue[]
+  id            Int             @id @default(autoincrement())
+  name          String
+  surveyId      Int
+  parameterId   Int?
+  survey        Survey          @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  parameter     Parameter?       @relation(fields: [parameterId], references: [id], onDelete: Cascade)
+  impacts       FactorImpact[]
+  values        FactorValue[]
 }
 
 model FactorImpact {
@@ -128,6 +131,14 @@ model FactorValue {
   value       Int
   factor      Factor    @relation(fields: [factorId], references: [id], onDelete: Cascade)
   response    Response  @relation(fields: [responseId], references: [id], onDelete: Cascade)
+}
+
+model Parameter {
+  id          Int       @id @default(autoincrement())
+  name        String
+  surveyId    Int
+  survey      Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  factors     Factor[]
 }
 
 model Exam {
