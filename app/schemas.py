@@ -170,12 +170,12 @@ class ParameterBase(BaseModel):
 
 
 class ParameterCreate(FactorBase):
-    factors = Optional[List[FactorCreate]] = None
+    factors: Optional[List[FactorCreate]] = None
 
 
 class ParameterUpdate(FactorBase):
     name: Optional[str] = None
-    factors = Optional[List[FactorUpdate]] = None
+    factors: Optional[List[FactorUpdate]] = None
 
 
 class ParameterResponse(FactorBase):
