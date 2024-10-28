@@ -25,6 +25,8 @@ from app.schemas import (
     FactorValueCreate,
     ParameterCreate,
     ParameterUpdate,
+    StaticOptionCreate,
+    StaticOptionUpdate,
 )
 
 
@@ -470,6 +472,129 @@ async def delete_option(option_id: int):
 
 async def delete_factor_impact(impact_id: int):
     return await prisma.factorimpact.delete(where={"id": impact_id})
+
+
+async def get_static_option(static_option_id: int):
+    option = await prisma.staticoption.find_unique(
+        where={"id": static_option_id}, include={"staticFactorImpacts": True}
+    )
+    return option
+
+
+async def create_static_option(
+    survey_id: int,
+    static_option: StaticOptionCreate,
+):
+    async with prisma.tx() as transaction:
+        static_option_data = static_option.dict(exclude={"staticFactorImpacts"})
+        static_option_data["surveyId"] = survey_id
+        created_static_option = await transaction.staticoption.create(
+            data=static_option_data
+        )
+
+        created_static_impacts = await create_static_impacts_for_static_option(
+            transaction, created_static_option.id, static_option
+        )
+
+        created_static_option_dict = created_static_option.dict()
+        created_static_option_dict["staticFactorImpacts"] = created_static_impacts
+        return created_static_option_dict
+
+
+async def create_static_impacts_for_static_option(
+    transaction,
+    static_option_id: int,
+    static_option: StaticOptionCreate,
+):
+    created_static_impacts = []
+    for static_impact in static_option.staticFactorImpacts:
+        static_impact_data = static_impact.dict()
+        static_impact_data["staticOptionId"] = static_option_id
+        created_static_impact = await transaction.staticfactorimpact.create(
+            data=static_impact_data
+        )
+        created_static_impact_dict = created_static_impact.dict()
+
+        created_static_impacts.append(created_static_impact_dict)
+
+    return created_static_impacts
+
+
+async def list_static_options(survey_id: int):
+    static_option_list = await prisma.staticoption.find_many(
+        where={"surveyId": survey_id},
+        include={"staticFactorImpacts": True},
+    )
+    return static_option_list
+
+
+async def update_static_option(
+    static_option_id: int, static_option: StaticOptionUpdate
+):
+    async with prisma.tx() as transaction:
+        static_option_data = static_option.dict(
+            exclude_unset=True, exclude={"staticFactorImpacts"}
+        )
+        updated_static_option = await transaction.staticoption.update(
+            where={"id": static_option_id}, data=static_option_data
+        )
+
+        await update_static_impacts_for_static_option(
+            transaction, updated_static_option.id, static_option
+        )
+
+    return await prisma.staticoption.find_unique(
+        where={"id": static_option_id},
+        include={"staticFactorImpacts": True},
+    )
+
+
+async def update_static_impacts_for_static_option(
+    transaction,
+    static_option_id: int,
+    static_option: StaticOptionUpdate,
+):
+    updated_static_impacts = []
+    for static_impact in static_option.staticFactorImpacts:
+        if static_impact.id:
+            static_impact_data = static_impact.dict(exclude_unset=True)
+
+            updated_static_impact = await transaction.staticfactorimpact.update(
+                where={"id": static_impact.id}, data=static_impact_data
+            )
+
+            updated_static_impact_dict = updated_static_impact.dict()
+
+            updated_static_impacts.append(updated_static_impact_dict)
+
+        else:
+            static_impact_data = static_impact.dict(exclude={"id"})
+            static_impact_data["staticOptionId"] = static_option_id
+            created_static_impact = await transaction.staticfactorimpact.create(
+                data=static_impact_data
+            )
+            created_static_impact_dict = created_static_impact.dict()
+            updated_static_impacts.append(created_static_impact_dict)
+
+    return updated_static_impacts
+
+
+async def delete_static_option(static_option_id: int):
+    await prisma.staticfactorimpact.delete_many(
+        where={"staticOptionId": static_option_id}
+    )
+    return await prisma.staticoption.delete(where={"id": static_option_id})
+
+
+async def get_static_factor_impact(static_factor_impact_id: int):
+    impact = await prisma.staticfactorimpact.find_unique(
+        where={"id": static_factor_impact_id}
+    )
+    return impact
+
+
+async def delete_static_factor_impact(static_impact_id: int):
+    return await prisma.factorimpact.delete(where={"id": static_impact_id})
 
 
 """

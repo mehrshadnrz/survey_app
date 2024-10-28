@@ -8,6 +8,8 @@ from app.dependencies import (
     verify_survey,
     verify_option,
     verify_impact,
+    verify_static_option,
+    verify_static_impact,
 )
 
 router = APIRouter()
@@ -92,7 +94,6 @@ async def list_question(
     return questions
 
 
-# TODO: bugged, change to work with order
 @router.put(
     "/{survey_id}/update_question/{question_id}",
     response_model=schemas.QuestionResponse,
@@ -226,9 +227,6 @@ async def delete_factor(
     return factor
 
 
-
-
-
 @router.post("/{survey_id}/parameter/", response_model=schemas.ParameterResponse)
 async def create_parameter(
     parameter: schemas.ParameterCreate,
@@ -239,7 +237,10 @@ async def create_parameter(
     return created_parameter
 
 
-@router.get("/{survey_id}/parameter/{parameter_id}", response_model=schemas.ParameterResponse)
+@router.get(
+    "/{survey_id}/parameter/{parameter_id}",
+    response_model=schemas.ParameterResponse,
+)
 async def get_parameter(
     parameter_id: int,
     survey: dict = Depends(verify_survey),
@@ -258,7 +259,10 @@ async def list_parameter(
     return parameters
 
 
-@router.put("/{survey_id}/parameter/{parameter_id}", response_model=schemas.ParameterResponse)
+@router.put(
+    "/{survey_id}/parameter/{parameter_id}",
+    response_model=schemas.ParameterResponse,
+)
 async def update_parameter(
     parameter_id: int,
     parameter: schemas.ParameterUpdate,
@@ -274,7 +278,10 @@ async def update_parameter(
     return updated_parameter
 
 
-@router.delete("/{survey_id}/parameter/{parameter_id}", response_model=schemas.ParameterResponse)
+@router.delete(
+    "/{survey_id}/parameter/{parameter_id}",
+    response_model=schemas.ParameterResponse,
+)
 async def delete_parameter(
     parameter_id: int,
     survey: dict = Depends(verify_survey),
@@ -287,3 +294,92 @@ async def delete_parameter(
         )
     parameter = await crud.delete_parameter(parameter_id)
     return parameter
+
+
+@router.post(
+    "/{survey_id}/add_static_option", response_model=schemas.StaticOptionResponse
+)
+async def create_static_option(
+    static_option: schemas.StaticOptionCreate,
+    survey=Depends(verify_survey),
+    currnet_user: dict = Depends(verify_author),
+):
+    new_static_option = await crud.create_static_option(survey.id, static_option)
+    return new_static_option
+
+
+@router.get(
+    "/{survey_id}/get_static_option/{static_option_id}",
+    response_model=schemas.StaticOptionResponse,
+)
+async def get_static_option(static_option=Depends(verify_static_option)):
+    return static_option
+
+
+@router.get(
+    "/{survey_id}/list_static_options",
+    response_model=List[schemas.StaticOptionResponse],
+)
+async def list_static_option(
+    survey=Depends(verify_survey),
+    currnet_user: dict = Depends(verify_author),
+):
+    static_options = await crud.list_static_options(survey.id)
+    return static_options
+
+
+@router.put(
+    "/{survey_id}/update_static_option/{static_option_id}",
+    response_model=schemas.StaticOptionResponse,
+)
+async def update_static_option(
+    survey_id: int,
+    static_option: schemas.StaticOptionUpdate,
+    existing_static_option=Depends(verify_static_option),
+):
+    existing_survey = await crud.get_survey_by_id(survey_id)
+    if existing_survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not edit static_option after activation",
+        )
+    updated_static_option = await crud.update_static_option(
+        existing_static_option.id, static_option
+    )
+    return updated_static_option
+
+
+@router.delete(
+    "/{survey_id}/delete_static_option/{static_option_id}",
+    response_model=schemas.StaticOptionResponse,
+)
+async def delete_static_option(
+    survey_id: int,
+    static_option=Depends(verify_static_option),
+):
+    existing_survey = await crud.get_survey_by_id(survey_id)
+    if existing_survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not delete static_option after activation",
+        )
+    deleted_static_option = await crud.delete_static_option(static_option.id)
+    return deleted_static_option
+
+
+@router.delete(
+    "/{survey_id}/delete_static_factor_impact/{static_factor_impact_id}",
+    response_model=schemas.StaticFactorImpactResponse,
+)
+async def delete_static_factor_impact(
+    survey_id: int,
+    static_impact=Depends(verify_static_impact),
+):
+    existing_survey = await crud.get_survey_by_id(survey_id)
+    if existing_survey.isActive is True:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not delete static_factor impact after activation",
+        )
+    deleted_static_impact = await crud.delete_static_factor_impact(static_impact.id)
+    return deleted_static_impact

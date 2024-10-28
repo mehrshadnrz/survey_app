@@ -49,6 +49,26 @@ model Survey {
   factors               Factor[]
   parameters            Parameter[]
   examSurveys           ExamSurvey[]   @relation("SurveyExams")
+  staticoptions         StaticOption[]
+}
+
+model StaticOption {
+  id                    Int             @id @default(autoincrement())
+  optionText            String
+  order                 Int
+  surveyId              Int
+  survey                Survey          @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  staticFactorImpacts   StaticFactorImpact[]
+}
+
+model StaticFactorImpact {
+  id                Int             @id @default(autoincrement())
+  factorId          Int
+  staticOptionId    Int
+  impact            Int
+  plus              Boolean
+  factor            Factor          @relation(fields: [factorId], references: [id], onDelete: Cascade)
+  staticOption      StaticOption    @relation(fields: [staticOptionId], references: [id], onDelete: Cascade)
 }
 
 model Question {
@@ -67,13 +87,13 @@ model Question {
 }
 
 model Option {
-  id           Int          @id @default(autoincrement())
-  questionId   Int
-  optionText   String
-  image        String?
-  order        Int
-  question     Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  answers      Answer[]
+  id            Int          @id @default(autoincrement())
+  questionId    Int
+  optionText    String
+  image         String?
+  order         Int
+  question      Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answers       Answer[]
   factorImpacts FactorImpact[]
 }
 
@@ -104,14 +124,15 @@ model Answer {
 }
 
 model Factor {
-  id            Int             @id @default(autoincrement())
-  name          String
-  surveyId      Int
-  parameterId   Int?
-  survey        Survey          @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  parameter     Parameter?       @relation(fields: [parameterId], references: [id], onDelete: Cascade)
-  impacts       FactorImpact[]
-  values        FactorValue[]
+  id              Int             @id @default(autoincrement())
+  name            String
+  surveyId        Int
+  parameterId     Int?
+  survey          Survey          @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  parameter       Parameter?      @relation(fields: [parameterId], references: [id], onDelete: Cascade)
+  impacts         FactorImpact[]
+  staticImpacts   StaticFactorImpact[]
+  values          FactorValue[]
 }
 
 model FactorImpact {

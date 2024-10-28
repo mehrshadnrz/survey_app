@@ -117,6 +117,41 @@ async def verify_impact(
     return impact
 
 
+async def verify_static_option(
+    static_option_id: int,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    static_option = await crud.get_static_option(static_option_id)
+    if not static_option:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="StaticOption not found"
+        )
+    if static_option.surveyId != survey.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+        )
+    return static_option
+
+
+async def verify_static_impact(
+    static_factor_impact_id: int,
+    survey: dict = Depends(verify_survey),
+    current_user: dict = Depends(verify_author),
+):
+    static_impact = await crud.get_static_factor_impact(static_factor_impact_id)
+    if not static_impact:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="FactorImpact not found"
+        )
+    static_option = await crud.get_static_option(static_impact.staticOptionId)
+    if static_option.surveyId != survey.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+        )
+    return static_impact
+
+
 async def verify_exam(
     exam_id: int,
 ):

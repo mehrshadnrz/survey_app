@@ -280,6 +280,62 @@ class SurveyListQuestions(SurveyBase):
 
 
 """
+StaticFactorImpact
+"""
+
+
+class StaticFactorImpactBase(BaseModel):
+    factorId: int
+    impact: int
+    plus: bool
+
+
+class StaticFactorImpactCreate(StaticFactorImpactBase):
+    pass
+
+
+class StaticFactorImpactUpdate(StaticFactorImpactBase):
+    id: Optional[int] = None
+
+
+class StaticFactorImpactResponse(StaticFactorImpactBase):
+    id: int
+    staticOptionId: int
+
+    class Config:
+        orm_mode: True
+
+
+"""
+StaticOption
+"""
+
+
+class StaticOptionBase(BaseModel):
+    optionText: str
+    order: int
+
+
+class StaticOptionCreate(StaticOptionBase):
+    staticFactorImpacts: Optional[List[StaticFactorImpactCreate]] = None
+
+
+class StaticOptionUpdate(StaticOptionBase):
+    id: Optional[int] = None
+    optionText: Optional[str] = None
+    order: Optional[int] = None
+    staticFactorImpacts: Optional[List[StaticFactorImpactUpdate]] = None
+
+
+class StaticOptionResponse(StaticOptionBase):
+    id: int
+    staticFactorImpacts: Optional[List[StaticFactorImpactResponse]]
+
+    class Config:
+        orm_mode: True
+
+
+"""
 Answer
 """
 
